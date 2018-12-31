@@ -84,6 +84,13 @@ describe( 'Event', () =>
     describe( '#preventDefault()', () =>
     {
 
+        it( 'returns parent event object', () =>
+        {
+            const event = new Event( <any>void 0, <any>void 0 );
+
+            expect( event.preventDefault() ).toBe( event );
+        });
+
         it( 'multiple calls are idempotent', () =>
         {
             const event = new Event( <any>void 0, <any>void 0 );
@@ -107,6 +114,13 @@ describe( 'Event', () =>
 
     describe( '#stopPropagation()', () =>
     {
+
+        it( 'returns parent event object', () =>
+        {
+            const event = new Event( <any>void 0, <any>void 0 );
+
+            expect( event.stopPropagation() ).toBe( event );
+        });
 
         it( 'multiple calls are idempotent', () =>
         {
