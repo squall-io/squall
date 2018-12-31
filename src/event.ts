@@ -23,6 +23,9 @@ export class Emitter<NN extends string>
 
 export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
 {
+    public constructor(name: N, emitter: E)
+    {}
+
     public get name(): N
     {
         throw new Error('method not yet implemented');
