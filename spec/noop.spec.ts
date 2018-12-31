@@ -1,9 +1,9 @@
-describe( 'noop', () =>
+describe('noop', () =>
 {
 
-    it( '()', () =>
+    it('()', () =>
     {
-        expect( 2 ** 3 ).toBe( 8 );
-    } );
+        expect(2**3).toBe(8);
+    });
 
-} );
+});
