@@ -13,7 +13,7 @@ export class Emitter<NN extends string>
 
         while ( index < steners.length && !EVENT.isPropagationStopped )
         {
-            steners[ index++ ].call( EVENT, EVENT, ...parameters );
+            steners[ index++ ]( EVENT, ...parameters );
         }
 
         return EVENT;
@@ -106,7 +106,7 @@ export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
 
 export interface Listener<N extends string, PP extends any[] = [], E extends Emitter<N> = Emitter<N>>
 {
-    (this: Event<N, E>, event: Event<N, E>, ...parameters: PP): any;
+    (event: Event<N, E>, ...parameters: PP): any;
 }
 
 const emitters = new WeakMap<Emitter<string>, Map<string, Listener<string>[]>>();
