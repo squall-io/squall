@@ -1,0 +1,70 @@
+defaultSeverity: error
+extends: tslint:all
+rules:
+  no-angle-bracket-type-assertion: false
+  object-literal-sort-keys: false
+  newline-per-chained-call: false
+  only-arrow-functions: false
+  no-magic-numbers: false
+  no-null-keyword: false
+  ordered-imports: false
+  one-line: false
+  forin: false
+
+  typedef-whitespace:
+  - true
+  - variable-declaration: nospace
+    property-declaration: nospace
+    index-signature: nospace
+    call-signature: nospace
+    parameter: nospace
+  - variable-declaration: onespace
+    property-declaration: onespace
+    index-signature: onespace
+    call-signature: onespace
+    parameter: onespace
+  no-consecutive-blank-lines:
+  - true
+  - 3
+  space-within-parens: 0
+  quotemark:
+  - true
+  - avoid-template
+  - avoid-escape
+  - single
+  typedef:
+  - true
+  - member-variable-declaration
+  # - variable-declaration
+  - property-declaration
+  - call-signature
+  - parameter
+
+
+  # deprecation: true
+  # indent: [ true, spaces, 4 ]
+  # max-classes-per-file: false
+
+  # curly:
+  #   options: as-needed
+  # interface-name:
+  #   options: never-prefix
+  # arrow-parens:
+  # - true
+  # - ban-single-arg-parens
+  # increment-decrement: false
+  # object-literal-key-quotes:
+  # - true
+  # - consistent-as-needed
+  # whitespace:
+  # - true
+  # - check-decl
+  # # - check-type
+  # - check-branch
+  # - check-module
+  # - check-operator
+  # - check-typecast
+  # - check-preblock
+  # - check-separator
+  # - check-rest-spread
+  # - check-type-operator
