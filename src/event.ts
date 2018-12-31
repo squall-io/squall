@@ -24,45 +24,60 @@ export class Emitter<NN extends string>
 export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
 {
     public constructor(name: N, emitter: E)
-    {}
+    {
+        events.set( this, {
+            name,
+            emitter,
+            timestamp: Date.now(),
+            isDefaultPrevented: false,
+            isPropagationStopped: false,
+        });
+    }
 
     public get name(): N
     {
-        throw new Error('method not yet implemented');
+        return <N>events.get( this )!.name;
     }
 
     public get emitter(): E
     {
-        throw new Error('method not yet implemented');
+        return <E>events.get( this )!.emitter;
     }
 
     public get timestamp(): number
     {
-        throw new Error('method not yet implemented');
+        return events.get( this )!.timestamp;
     }
 
     public get isDefaultPrevented(): boolean
     {
-        throw new Error('method not yet implemented');
+        return events.get( this )!.isDefaultPrevented;
     }
 
     public get isPropagationStopped(): boolean
     {
-        throw new Error('method not yet implemented');
+        return events.get( this )!.isPropagationStopped;
     }
 
     public preventDefault(): this
     {
-        throw new Error('method not yet implemented');
+        events.get( this )!.isDefaultPrevented = true;
+
+        return this;
     }
 
     public stopPropagation(): this
     {
-        throw new Error('method not yet implemented');
+        events.get( this )!.isPropagationStopped = true;
+
+        return this;
     }
 }
 
-export interface Listener<N extends string = '', PP extends any[] = [], E extends Emitter<N> = Emitter<N>>
+export interface Listener<N extends string, PP extends any[] = [], E extends Emitter<N> = Emitter<N>>
 {
     (this: Event<N, E>, event: Event<N, E>, ...parameters: PP): any;
 }
+
+type EventAttribute = Exclude<keyof Event<string>, 'preventDefault' | 'stopPropagation'>;
+const events = new WeakMap< Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();
