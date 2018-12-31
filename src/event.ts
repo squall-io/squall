@@ -1,23 +1,53 @@
 export class Emitter<NN extends string>
 {
+    public constructor()
+    {
+        emitters.set( this, new Map() );
+    }
+
     public trigger<N extends NN>(event: N, ...parameters: any[]): Event<N, this>
     {
-        throw new Error('method not yet implemented');
+        let index = 0;
+        const EVENT = new Event( event, this );
+        const steners: Listener<N, any[], this>[] = <any>emitters.get( this )!.get( event ) || [];
+
+        while ( index < steners.length && !EVENT.isPropagationStopped )
+        {
+            steners[ index++ ].call( EVENT, EVENT, ...parameters );
+        }
+
+        return EVENT;
     }
 
     public on<N extends NN>(event: N, ...listeners: Listener<N, any[], this>[]): this
     {
-        throw new Error('method not yet implemented');
+        const map = emitters.get( this )!;
+        const steners = ( map.has( event ) ? map
+            : map.set( event, [] ) ).get( event )!;
+
+        steners.push( ...(<any[]>listeners ).filter(
+            listener => !steners!.includes( listener ) ) );
+        steners.length || map.delete( event );
+
+        return this;
     }
 
     public off<N extends NN>(event: N, ...listeners: Listener<N, any[], this>[]): this
     {
-        throw new Error('method not yet implemented');
+        const steners = emitters.get( this )!.get( event );
+
+        !!steners && steners.splice(
+            0, steners.length, ...steners.filter(
+                stener => !listeners.includes( <any>stener ) ) );
+
+        return this;
     }
 
     public has<N extends NN>(event: N, ...listeners: Listener<N, any[], this>[]): boolean
     {
-        throw new Error('method not yet implemented');
+        const steners = emitters.get( this )!.get( event );
+
+        return !!steners && ( !listeners.length || listeners.every( listener => steners.includes( <any>listener ) ) );
     }
 }
 
@@ -79,5 +109,7 @@ export interface Listener<N extends string, PP extends any[] = [], E extends Emi
     (this: Event<N, E>, event: Event<N, E>, ...parameters: PP): any;
 }
 
+const emitters = new WeakMap<Emitter<string>, Map<string, Listener<string>[]>>();
+
 type EventAttribute = Exclude<keyof Event<string>, 'preventDefault' | 'stopPropagation'>;
-const events = new WeakMap< Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();
+const events = new WeakMap<Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();
