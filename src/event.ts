@@ -64,8 +64,8 @@ export class Emitter<NN extends string>
      *
      * Unregisters listeners for the given event.
      *
-     * > - if a listener was not registered, nothing relevant happen of him.
-     * > - if no listener is supplied, nothing happen
+     * > - if a listener was not registered, nothing relevant happen of him;
+     * > - if no listener is supplied, nothing happen.
      *
      * @param event Event name
      * @param listeners Event listeners to unregister
