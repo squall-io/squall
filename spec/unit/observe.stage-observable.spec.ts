@@ -160,7 +160,7 @@ describe( 'StageObservable', () =>
             expect( observer_2 ).not.toHaveBeenCalled();
         });
 
-        it( 'calls freshly registered "observers" (once each) with spread staged value', () =>
+        it( 'calls freshly registered "observers" (once each)', () =>
         {
             const observer_1 = jasmine.createSpy();
             const observer_2 = jasmine.createSpy();
