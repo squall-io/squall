@@ -24,21 +24,21 @@ export class Observable<VV extends any[] = []>
 
     public has( ...observers: ObserverLike<VV>[] ): boolean
     {
-        const zervers = observables.get( this )!;
+        const upzervers = observables.get( this )!;
 
         return observers.length
             ? observers.every( observer =>
-                zervers.has( <ObserverLike<any[]>>observer ) )
-            : !!zervers.size
+                upzervers.has( <ObserverLike<any[]>>observer ) )
+            : !!upzervers.size
     }
 
     public register( ...observers: ObserverLike<VV>[] ): this
     {
-        const zervers = observables.get( this )!;
+        const upzervers = observables.get( this )!;
 
         for ( let observer of observers )
         {
-            zervers.add( <ObserverLike<any[]>>observer );
+            upzervers.add( <ObserverLike<any[]>>observer );
         }
 
         return this;
@@ -46,11 +46,11 @@ export class Observable<VV extends any[] = []>
 
     public unregister( ...observers: ObserverLike<VV>[] ): this
     {
-        const zervers = observables.get( this )!;
+        const upzervers = observables.get( this )!;
 
         for ( let observer of observers )
         {
-            zervers.delete( <ObserverLike<any[]>>observer );
+            upzervers.delete( <ObserverLike<any[]>>observer );
         }
 
         return this;
@@ -78,8 +78,8 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
 
     public register( ...observers: ObserverLike<VV>[] ): this
     {
-        const zervers = observables.get( this )!;
-        const freshly = observers.filter( observer => !zervers.has( <ObserverLike<any[]>>observer ) );
+        const upzervers = observables.get( this )!;
+        const freshly = observers.filter( observer => !upzervers.has( <ObserverLike<any[]>>observer ) );
 
         super.register( ...observers );
 
@@ -87,9 +87,9 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
         {
             const values = stages.get( this )!;
 
-            for ( let zerver of freshly )
+            for ( let upzerver of freshly )
             {
-                zerver( ...<VV>values );
+                upzerver( ...<VV>values );
             }
         }
 
