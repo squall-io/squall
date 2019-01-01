@@ -24,11 +24,6 @@ describe( 'Observable', () =>
     describe( '#notify()', () =>
     {
 
-        it( 'calls all registered observers', () =>
-        {
-            //
-        });
-
         it( 'calls all registered observers once', () =>
         {
             //
