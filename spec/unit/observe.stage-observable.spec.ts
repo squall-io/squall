@@ -148,6 +148,18 @@ describe( 'StageObservable', () =>
             expect( returned ).toBe( observable );
         });
 
+        it( 'calls NOT freshly registered "observers" if no value is staged', () =>
+        {
+            const observer_1 = jasmine.createSpy();
+            const observer_2 = jasmine.createSpy();
+            const observable = new StageObservable();
+
+            observable.register( observer_1, observer_2 );
+
+            expect( observer_1 ).not.toHaveBeenCalled();
+            expect( observer_2 ).not.toHaveBeenCalled();
+        });
+
         it( 'calls freshly registered "observers" (once each) with spread staged value', () =>
         {
             const observer_1 = jasmine.createSpy();
@@ -160,18 +172,6 @@ describe( 'StageObservable', () =>
 
             expect( observer_1 ).toHaveBeenCalledTimes( 1 );
             expect( observer_2 ).toHaveBeenCalledTimes( 1 );
-        });
-
-        it( 'calls NOT freshly registered "observers" if no value is staged', () =>
-        {
-            const observer_1 = jasmine.createSpy();
-            const observer_2 = jasmine.createSpy();
-            const observable = new StageObservable();
-
-            observable.register( observer_1, observer_2 );
-
-            expect( observer_1 ).not.toHaveBeenCalled();
-            expect( observer_2 ).not.toHaveBeenCalled();
         });
 
     });
