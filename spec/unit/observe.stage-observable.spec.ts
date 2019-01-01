@@ -174,6 +174,20 @@ describe( 'StageObservable', () =>
             expect( observer_2 ).toHaveBeenCalledTimes( 1 );
         });
 
+        it( 'calls freshly registered "observers" (once each) with spread staged value', () =>
+        {
+            const observer_1 = jasmine.createSpy();
+            const observer_2 = jasmine.createSpy();
+            const observable = new StageObservable();
+            const parameters = [ uuid(), uuid(), uuid() ];
+
+            observable.notify( ...<[]>parameters );
+            observable.register( observer_1, observer_2 );
+
+            expect( observer_1 ).toHaveBeenCalledWith( ...parameters );
+            expect( observer_2 ).toHaveBeenCalledWith( ...parameters );
+        });
+
     });
 
     describe( '#unregister()', () =>
