@@ -55,6 +55,45 @@ export class Observable<VV extends any[] = []>
 
 export class StageObservable<VV extends any[] = []> extends Observable<VV>
 {
+
+    public reset(): this
+    {
+        stages.delete( this );
+        super.reset();
+
+        return this;
+    }
+
+    public notify( ...values: VV ): this
+    {
+        stages.set( this, values );
+        super.notify( ...values );
+
+        return this;
+    }
+
+    public register( ...observers: ObserverLike<VV>[] ): this
+    {
+        const zervers = observables.get( this )!;
+        const priorObservers = new Set( zervers );
+
+        super.register( ...observers );
+
+        if ( stages.has( this ) )
+        {
+            const values = stages.get( this )!;
+
+            for ( let zerver of Array.from( zervers ) )
+            {
+                if ( !priorObservers.has( zerver ) )
+                {
+                    zerver( ...values );
+                }
+            }
+        }
+
+        return this;
+    }
 }
 
 export interface ObserverLike<VV extends any[]>
@@ -62,4 +101,5 @@ export interface ObserverLike<VV extends any[]>
     ( ...values: VV ): any;
 }
 
+const stages = new WeakMap<StageObservable<any[]>, any[]>();
 const observables = new WeakMap<Observable<any[]>, Set<ObserverLike<any[]>>>();
