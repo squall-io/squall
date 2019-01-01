@@ -38,10 +38,10 @@ describe( 'Emitter', () =>
 
             it( 'in which .timestamp matches the timestamp at which #trigger() was called', () =>
             {
-                const before = Date.now();
                 const emitter = new Emitter();
-                const after = Date.now();
+                const before = Date.now();
                 const event = emitter.trigger( uuid() );
+                const after = Date.now();
 
                 expect( event.timestamp ).toBeLessThanOrEqual( after );
                 expect( event.timestamp ).toBeGreaterThanOrEqual( before );
