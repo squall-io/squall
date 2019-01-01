@@ -1,4 +1,4 @@
-export class Observable<VV extends any[]>
+export class Observable<VV extends any[] = []>
 {
     public reset(): this
     {
@@ -21,7 +21,7 @@ export class Observable<VV extends any[]>
     }
 }
 
-export class StageObservable<VV extends any[]> extends Observable<VV>
+export class StageObservable<VV extends any[] = []> extends Observable<VV>
 {
 }
 
