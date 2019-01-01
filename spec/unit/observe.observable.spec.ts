@@ -9,6 +9,11 @@ describe( 'Observable', () =>
             //
         });
 
+        it( 'returns #reset() parent Observable object', () =>
+        {
+            //
+        });
+
     });
 
     describe( '#notify()', () =>
@@ -20,6 +25,11 @@ describe( 'Observable', () =>
         });
 
         it( 'calls all registered observers once', () =>
+        {
+            //
+        });
+
+        it( 'returns #notify() parent Observable object', () =>
         {
             //
         });
@@ -54,10 +64,20 @@ describe( 'Observable', () =>
             //
         });
 
+        it( 'returns #register() parent Observable object', () =>
+        {
+            //
+        });
+
     });
 
     describe( '#unregister()', () =>
     {
+
+        it( 'returns #unregister() parent Observable object', () =>
+        {
+            //
+        });
 
         it( 'unregisters "observers" to this observable', () =>
         {
