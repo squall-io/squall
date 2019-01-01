@@ -14,6 +14,11 @@ describe( 'Observable', () =>
             //
         });
 
+        it( 'returns #reset() parent StageObservable object', () =>
+        {
+            //
+        });
+
     });
 
     describe( '#notify()', () =>
@@ -25,6 +30,11 @@ describe( 'Observable', () =>
         });
 
         it( 'calls all registered observers once', () =>
+        {
+            //
+        });
+
+        it( 'returns #notify() parent StageObservable object', () =>
         {
             //
         });
@@ -59,6 +69,11 @@ describe( 'Observable', () =>
             //
         });
 
+        it( 'returns #register() parent StageObservable object', () =>
+        {
+            //
+        });
+
         it( 'calls freshly registered "observers" with spread staged value', () =>
         {
             //
@@ -75,6 +90,11 @@ describe( 'Observable', () =>
     {
 
         it( 'unregisters "observers" to this observable', () =>
+        {
+            //
+        });
+
+        it( 'returns #unregister() parent StageObservable object', () =>
         {
             //
         });
