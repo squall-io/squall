@@ -4,7 +4,7 @@ describe( 'Observable', () =>
     describe( '#reset()', () =>
     {
 
-        it( 'clear registered observers', () =>
+        it( 'clears registered observers', () =>
         {
             //
         });
