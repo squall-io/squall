@@ -88,7 +88,7 @@ export class Emitter<NN extends string>
      * are registered on this emitter for the provided event.
      *
      * > If no listener is provided, the returned boolean indicates
-     *   that at least one listener is registered under for the given event.
+     *   that at least one listener is registered for the given event.
      *
      * @param event Event name
      * @param listeners Event listeners to check for registered state
