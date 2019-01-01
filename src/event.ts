@@ -5,7 +5,7 @@
  * As it is, it stands as the corridor between the
  * source of an event (the code that create and/or
  * access an Emitter) and its events' targets (the
- * Listener).
+ * ListenerLike callback).
  *
  */
 export class Emitter<NN extends string>
@@ -29,7 +29,7 @@ export class Emitter<NN extends string>
     {
         let index = 0;
         const EVENT = new Event( event, this );
-        const steners: Listener<N, any[], this>[] = <any>emitters.get( this )!.get( event ) || [];
+        const steners: ListenerLike<N, any[], this>[] = <any>emitters.get( this )!.get( event ) || [];
 
         while ( index < steners.length && !EVENT.isPropagationStopped )
         {
@@ -47,7 +47,7 @@ export class Emitter<NN extends string>
      * @param listeners Event listeners to register for the supplied event
      *
      */
-    public on<N extends NN>(event: N, ...listeners: Listener<N, any[], this>[]): this
+    public on<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this
     {
         const map = emitters.get( this )!;
         const steners = ( map.has( event ) ? map
@@ -71,7 +71,7 @@ export class Emitter<NN extends string>
      * @param listeners Event listeners to unregister
      *
      */
-    public off<N extends NN>(event: N, ...listeners: Listener<N, any[], this>[]): this
+    public off<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this
     {
         const steners = emitters.get( this )!.get( event );
 
@@ -94,7 +94,7 @@ export class Emitter<NN extends string>
      * @param listeners Event listeners to check for registered state
      *
      */
-    public has<N extends NN>(event: N, ...listeners: Listener<N, any[], this>[]): boolean
+    public has<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): boolean
     {
         const steners = emitters.get( this )!.get( event );
 
@@ -206,12 +206,12 @@ export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
  * listen events triggered by an event Emitter.
  *
  */
-export interface Listener<N extends string, PP extends any[] = [], E extends Emitter<N> = Emitter<N>>
+export interface ListenerLike<N extends string, PP extends any[] = [], E extends Emitter<N> = Emitter<N>>
 {
     (event: Event<N, E>, ...parameters: PP): any;
 }
 
-const emitters = new WeakMap<Emitter<string>, Map<string, Listener<string>[]>>();
+const emitters = new WeakMap<Emitter<string>, Map<string, ListenerLike<string>[]>>();
 
 type EventAttribute = Exclude<keyof Event<string>, 'preventDefault' | 'stopPropagation'>;
 const events = new WeakMap<Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();
