@@ -14,7 +14,7 @@ export class Observable<VV extends any[] = []>
 
     public notify( ...values: VV ): this
     {
-        for ( let observer of Array.from( observables.get( this )!.values() ) )
+        for ( let observer of Array.from( observables.get( this )! ) )
         {
             observer( ...values );
         }
@@ -34,9 +34,11 @@ export class Observable<VV extends any[] = []>
 
     public register( ...observers: ObserverLike<VV>[] ): this
     {
+        const zervers = observables.get( this )!;
+
         for ( let observer of observers )
         {
-            observables.get( this )!.add( <ObserverLike<any[]>>observer );
+            zervers.add( <ObserverLike<any[]>>observer );
         }
 
         return this;
@@ -44,9 +46,11 @@ export class Observable<VV extends any[] = []>
 
     public unregister( ...observers: ObserverLike<VV>[] ): this
     {
+        const zervers = observables.get( this )!;
+
         for ( let observer of observers )
         {
-            observables.get( this )!.delete( <ObserverLike<any[]>>observer );
+            zervers.delete( <ObserverLike<any[]>>observer );
         }
 
         return this;
@@ -75,7 +79,7 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
     public register( ...observers: ObserverLike<VV>[] ): this
     {
         const zervers = observables.get( this )!;
-        const priorObservers = new Set( zervers );
+        const freshly = observers.filter( observer => !zervers.has( <ObserverLike<any[]>>observer ) );
 
         super.register( ...observers );
 
@@ -83,12 +87,9 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
         {
             const values = stages.get( this )!;
 
-            for ( let zerver of Array.from( zervers ) )
+            for ( let zerver of freshly )
             {
-                if ( !priorObservers.has( zerver ) )
-                {
-                    zerver( ...values );
-                }
+                zerver( ...<VV>values );
             }
         }
 
