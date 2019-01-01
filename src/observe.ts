@@ -10,6 +10,11 @@ export class Observable<VV extends any[] = []>
         throw new Error( 'method not yet implemented' );
     }
 
+    public has( ...observers: ObserverLike<VV>[] ): boolean
+    {
+        throw new Error( 'method not yet implemented' );
+    }
+
     public register( ...observers: ObserverLike<VV>[] ): this
     {
         throw new Error( 'method not yet implemented' );
