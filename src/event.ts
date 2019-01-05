@@ -45,6 +45,7 @@ export class Emitter<NN extends string>
      * Registers listeners under supplied event.
      *
      * @param event Event name
+     * @param times Number of callbacks notifications before removal
      * @param listeners Event listeners to register for the supplied event
      *
      */
