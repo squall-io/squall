@@ -48,7 +48,9 @@ export class Emitter<NN extends string>
      * @param listeners Event listeners to register for the supplied event
      *
      */
-    public on<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this
+    public on<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this;
+    public on<N extends NN>(event: N, times: number, ...listeners: ListenerLike<N, any[], this>[]): this;
+    public on<N extends NN>(event: N, times: number | ListenerLike<N, any[], this>, ...listeners: ListenerLike<N, any[], this>[]): this
     {
         const map = emitters.get( this )!;
         const _listeners = ( map.has( event ) ? map : map.set( event, new Set() ) ).get( event )!;
