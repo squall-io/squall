@@ -27,13 +27,14 @@ export class Emitter<NN extends string>
      */
     public trigger<N extends NN>(event: N, ...parameters: any[]): Event<N, this>
     {
-        let index = 0;
+        let listener;
         const EVENT = new Event( event, this );
-        const steners: ListenerLike<N, any[], this>[] = <any>emitters.get( this )!.get( event ) || [];
+        const _listeners: IterableIterator<ListenerLike<string, [], Emitter<string>>>
+            = ( emitters.get( this )!.get( event ) || <Set<ListenerLike<string, [], Emitter<string>>>>voidSet).values();
 
-        while ( index < steners.length && !EVENT.isPropagationStopped )
+        while( !EVENT.isPropagationStopped && ( listener = _listeners.next().value ) )
         {
-            steners[ index++ ]( EVENT, ...parameters );
+            listener( EVENT, ...<[]>parameters );
         }
 
         return EVENT;
@@ -50,12 +51,14 @@ export class Emitter<NN extends string>
     public on<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this
     {
         const map = emitters.get( this )!;
-        const steners = ( map.has( event ) ? map
-            : map.set( event, [] ) ).get( event )!;
+        const _listeners = ( map.has( event ) ? map : map.set( event, new Set() ) ).get( event )!;
 
-        steners.push( ...(<any[]>listeners ).filter(
-            listener => !steners!.includes( listener ) ) );
-        steners.length || map.delete( event );
+        for ( let listener of listeners )
+        {
+            _listeners.add( <ListenerLike<string, [], Emitter<string>>> ( <any> listener ) );
+        }
+
+        _listeners.size && !map.has( event ) && map.set( event, _listeners );
 
         return this;
     }
@@ -73,11 +76,16 @@ export class Emitter<NN extends string>
      */
     public off<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this
     {
-        const steners = emitters.get( this )!.get( event );
+        const map = emitters.get( this )!;
+        const _listeners = map.get( event );
 
-        !!steners && steners.splice(
-            0, steners.length, ...steners.filter(
-                stener => !listeners.includes( <any>stener ) ) );
+        if ( _listeners )
+        {
+            for ( let listener of listeners )
+            {
+                _listeners.delete( <ListenerLike<string, [], Emitter<string>>> ( <any> listener ) );
+            }
+        }
 
         return this;
     }
@@ -96,9 +104,10 @@ export class Emitter<NN extends string>
      */
     public has<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): boolean
     {
-        const steners = emitters.get( this )!.get( event );
+        const _listeners = emitters.get( this )!.get( event );
 
-        return !!steners && ( !listeners.length || listeners.every( listener => steners.includes( <any>listener ) ) );
+        return !!_listeners && !!_listeners.size && listeners.every( listener =>
+            _listeners.has( <ListenerLike<string, [], Emitter<string>>> ( <any> listener ) ) );
     }
 }
 
@@ -211,7 +220,8 @@ export interface ListenerLike<N extends string, PP extends any[] = [], E extends
     (event: Event<N, E>, ...parameters: PP): any;
 }
 
-const emitters = new WeakMap<Emitter<string>, Map<string, ListenerLike<string>[]>>();
+const voidSet = new Set();
+const emitters = new WeakMap<Emitter<string>, Map<string, Set<ListenerLike<string>>>>();
 
 type EventAttribute = Exclude<keyof Event<string>, 'preventDefault' | 'stopPropagation'>;
 const events = new WeakMap<Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();
