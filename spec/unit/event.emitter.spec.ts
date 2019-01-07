@@ -165,6 +165,44 @@ describe( 'Emitter', () =>
             expect( listener_05 ).not.toHaveBeenCalled();
         });
 
+        it( 'unregisters registered listeners when after they have been called "times" (as given at Emitter#on() )', () =>
+        {
+            const name = uuid();
+            const emitter = new Emitter();
+            const times = 2 + Date.now() % 8;
+            const listener_01 = jasmine.createSpy();
+            const listener_02 = jasmine.createSpy();
+
+            emitter.on( name, times, listener_01, listener_02 );
+
+            for ( let i = 0; i < times; i++ )
+            {
+                emitter.trigger( name );
+            }
+
+            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_01 ) ).toBe( false );
+            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_02 ) ).toBe( false );
+        });
+
+        it( 'unregisters NOT registered listeners before they have been called "times" (as given at Emitter#on() )', () =>
+        {
+            const name = uuid();
+            const emitter = new Emitter();
+            const times = 2 + Date.now() % 8;
+            const listener_01 = jasmine.createSpy();
+            const listener_02 = jasmine.createSpy();
+
+            emitter.on( name, times, listener_01, listener_02 );
+
+            for ( let i = 0; i < times-1; i++ )
+            {
+                emitter.trigger( name );
+            }
+
+            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_01 ) ).toBe( true );
+            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_02 ) ).toBe( true );
+        });
+
     });
 
     describe(' #on()', () =>
