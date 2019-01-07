@@ -13,6 +13,7 @@ export class Emitter<NN extends string>
     public constructor()
     {
         emitters.set( this, new Map() );
+        listenersCountDown.set( this, new Map() );
     }
 
     /**
@@ -28,13 +29,28 @@ export class Emitter<NN extends string>
     public trigger<N extends NN>(event: N, ...parameters: any[]): Event<N, this>
     {
         let listener;
+        let countDown: number | void;
         const EVENT = new Event( event, this );
-        const _listeners: IterableIterator<ListenerLike<string, [], Emitter<string>>>
-            = ( emitters.get( this )!.get( event ) || <Set<ListenerLike<string, [], Emitter<string>>>>voidSet).values();
+        const _eventsCountDownMap = listenersCountDown.get( this )!;
+        const _listeners = emitters.get( this )!.get( event ) || <Set<ListenerLike<string>>>voidSet;
+        const _listenersIterator: IterableIterator<ListenerLike<string, [], Emitter<string>>> = _listeners.values();
+        const _listenersCountDown = _eventsCountDownMap.has( event ) ? _eventsCountDownMap.get( event )! : <WeakMap<ListenerLike<string>, number>>voidWeakMap;
 
-        while( !EVENT.isPropagationStopped && ( listener = _listeners.next().value ) )
+        while( !EVENT.isPropagationStopped && ( listener = _listenersIterator.next().value ) )
         {
             listener( EVENT, ...<[]>parameters );
+            countDown = _listenersCountDown.get( listener );
+
+            if ( void 0 !== countDown )
+            {
+                _listenersCountDown.set( listener, --countDown );
+
+                if ( !countDown )
+                {
+                    _listeners.delete( listener );
+                    _listenersCountDown.delete( listener );
+                }
+            }
         }
 
         return EVENT;
@@ -53,15 +69,36 @@ export class Emitter<NN extends string>
     public on<N extends NN>(event: N, times: number, ...listeners: ListenerLike<N, any[], this>[]): this;
     public on<N extends NN>(event: N, times: number | ListenerLike<N, any[], this>, ...listeners: ListenerLike<N, any[], this>[]): this
     {
-        const map = emitters.get( this )!;
-        const _listeners = ( map.has( event ) ? map : map.set( event, new Set() ) ).get( event )!;
+        const _listenersMap = emitters.get( this )!;
+        times instanceof Function
+            ? listeners.unshift( times ) && ( times = -1 )
+            : isNaN( +times ) ? ( times = -1 ) : ( times = +times - +times % 1);
+        const _listeners = ( _listenersMap.has( event ) ? _listenersMap : _listenersMap.set( event, new Set() ) ).get( event )!;
 
-        for ( let listener of listeners )
+        if ( times <= 0 )
         {
-            _listeners.add( <ListenerLike<string, [], Emitter<string>>> ( <any> listener ) );
+            for ( let listener of listeners )
+            {
+                _listeners.add( <ListenerLike<string>> ( <unknown> listener ) );
+            }
+        }
+        else
+        {
+            let countDownCounter = 0;
+            const _listenersCountDownMap = listenersCountDown.get( this )!;
+            const _listenersCountDown = _listenersCountDownMap.has( event ) ? _listenersCountDownMap.get( event )! : new WeakMap();
+
+            for ( let listener of listeners )
+            {
+                _listeners.has( <ListenerLike<string>>( <unknown>listener ) )
+                    || ++countDownCounter && _listenersCountDown.set( <ListenerLike<string>>( <unknown>listener ), +times );
+                _listeners.add( <ListenerLike<string>> ( <unknown> listener ) );
+            }
+
+            countDownCounter && !_listenersCountDownMap.has( event ) && _listenersCountDownMap.set( event, _listenersCountDown );
         }
 
-        _listeners.size && !map.has( event ) && map.set( event, _listeners );
+        _listeners.size && !_listenersMap.has( event ) && _listenersMap.set( event, _listeners );
 
         return this;
     }
@@ -86,7 +123,7 @@ export class Emitter<NN extends string>
         {
             for ( let listener of listeners )
             {
-                _listeners.delete( <ListenerLike<string, [], Emitter<string>>> ( <any> listener ) );
+                _listeners.delete( <ListenerLike<string>> ( <unknown> listener ) );
             }
         }
 
@@ -110,7 +147,7 @@ export class Emitter<NN extends string>
         const _listeners = emitters.get( this )!.get( event );
 
         return !!_listeners && !!_listeners.size && listeners.every( listener =>
-            _listeners.has( <ListenerLike<string, [], Emitter<string>>> ( <any> listener ) ) );
+            _listeners.has( <ListenerLike<string>> ( <unknown> listener ) ) );
     }
 }
 
@@ -224,7 +261,9 @@ export interface ListenerLike<N extends string, PP extends any[] = [], E extends
 }
 
 const voidSet = new Set();
+const voidWeakMap = new WeakMap();
 const emitters = new WeakMap<Emitter<string>, Map<string, Set<ListenerLike<string>>>>();
+const listenersCountDown = new WeakMap<Emitter<string>, Map<string, WeakMap<ListenerLike<string>, number>>>();
 
 type EventAttribute = Exclude<keyof Event<string>, 'preventDefault' | 'stopPropagation'>;
 const events = new WeakMap<Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();
