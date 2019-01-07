@@ -1,4 +1,4 @@
-import { Emitter, Event } from "../../src/event";
+import { Emitter, Event, ListenerLike } from "../../src/event";
 import { v4 as uuid } from 'uuid';
 
 
@@ -192,6 +192,22 @@ describe( 'Emitter', () =>
             const returned = emitter.has( name, listener_01, listener_02 );
 
             expect( returned ).toBe( true );
+        });
+
+        it( 'registers, for the given "event", all the provided "listeners" that are yet unregistered, even when trigger limit is given ("times")', () =>
+        {
+            const name: string = uuid();
+            const listener_01 = () => {};
+            const listener_02 = () => {};
+            const emitter = new Emitter();
+            const times = Date.now() % 10;
+
+            emitter.on( name, times, listener_01, listener_02 );
+
+            const returned = emitter.has( name, listener_01, listener_02 );
+
+            expect( returned ).toBe( true );
+            expect( emitter.has( name, <ListenerLike<string, any[]>>( <unknown>times ) ) ).toBe( false );
         });
 
     });
