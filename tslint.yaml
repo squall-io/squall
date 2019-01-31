@@ -8,6 +8,7 @@ rules:
   no-magic-numbers: false
   no-null-keyword: false
   ordered-imports: false
+  max-line-length: 280
   one-line: false
   forin: false
 
@@ -39,12 +40,13 @@ rules:
   - property-declaration
   - call-signature
   - parameter
+  max-classes-per-file: false
 
 
   # deprecation: true
   # indent: [ true, spaces, 4 ]
-  # max-classes-per-file: false
 
+ *
   # curly:
   #   options: as-needed
   # interface-name:
