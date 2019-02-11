@@ -6,7 +6,7 @@
     "test": "yarn  build:test && yarn run jasmine",
     "build": "yarn run tsc --project src/tsconfig.json",
     "build:test": "yarn run tsc --project spec/tsconfig.json",
-    "dev": "yarn run nodemon --ext ts --ignore node_modules --exec \"yarn test\""
+    "dev": "yarn run nodemon --ext ts --ignore dist --ignore node_modules --exec \"yarn test\""
   },
   "keywords": [],
   "author": "",
