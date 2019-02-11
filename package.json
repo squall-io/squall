@@ -1,8 +1,7 @@
 {
   "name": "@squall/core",
   "version": "0.0.1",
-  "description": "",
-  "main": "src/index.ts",
+  "description": "Squall - The hybrid TypeScript, microservice optimized framework",
   "scripts": {
     "test": "yarn  build:test && yarn run jasmine",
     "build": "yarn run tsc --project src/tsconfig.json",
