@@ -8,5 +8,6 @@
     },
     "include": [
         ".",
+        "../helper.d.ts",
     ],
 }
