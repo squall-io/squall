@@ -46,6 +46,16 @@ export const Singleton = ( overridable = false ) =>
             public constructor( ...parameters: any[] )
             {
                 super( ...parameters );
-                throw new Error( 'Not yet implemented' );
+
+                if ( singletonConstructorToInstanceMap.has( target ) )
+                {
+                    throw new Error( `${ target.name } already instantiated.` );
+                }
+
+                singletonInstanceToConstructorMap.set( this, target );
+                singletonConstructorToInstanceMap.set( target, this );
             }
         };
+
+const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
+const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
