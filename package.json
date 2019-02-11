@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "build": "./package-dist.sh",
+    "build": "yarn run tsc --project src/tsconfig.json",
     "dev": "yarn run nodemon --ext ts --ignore node_modules --exec \"yarn test\"",
     "test": "yarn run ts-node --project spec/tsconfig.json \"$( yarn bin jasmine )\""
   },
