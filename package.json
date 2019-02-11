@@ -5,8 +5,8 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "./package-dist.sh",
-    "test": "yarn run ts-node --project spec/tsconfig.json \"$( yarn bin jasmine )\"",
-    "dev": "yarn run nodemon --ext ts --ignore node_modules --exec \"yarn test\""
+    "dev": "yarn run nodemon --ext ts --ignore node_modules --exec \"yarn test\"",
+    "test": "yarn run ts-node --project spec/tsconfig.json \"$( yarn bin jasmine )\""
   },
   "keywords": [],
   "author": "",
