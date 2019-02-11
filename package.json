@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "./package-dist.sh",
-    "test": "npx ts-node \"$( yarn bin jasmine )\"",
+    "test": "npx ts-node --project spec/tsconfig.json \"$( yarn bin jasmine )\"",
     "dev": "npx nodemon --ext ts --ignore node_modules --exec \"npx ts-node '$( yarn bin jasmine )'\""
   },
   "keywords": [],
