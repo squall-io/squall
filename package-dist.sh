@@ -10,4 +10,5 @@
         node package-dist.js
         rm -f package-dist.js
         yarn install --production
+        # TODO: publish package if version differs from public one
     fi
