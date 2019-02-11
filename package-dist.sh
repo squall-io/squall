@@ -1,14 +1,13 @@
 #!/usr/bin/env sh
 
-npx ts-node "$( yarn bin jasmine )" \
-&& rm -Rf ./dist \
-&& npx tsc --pretty --project ./src \
-&& cd ./src \
-&& find . -type f -not -name "*.ts" -exec cp --parents "{}" /opt/app/dist/ \; \
-&& cd ../ && node -e "
-let package = require( './package.json' );
-package.main = 'index.js';
-delete package.devDependencies;
-package.scripts = { start: 'node index.js' };
-package = JSON.stringify( package, null, '  ' );
-console.log( package );" > dist/package.json
+[[ ${NODE_ENV} = "build" ]] && yarn test && \
+    yarn build && rm -Rf src spec && if [ 1 -eq 1 ]; then
+        rm -f package-dist.sh
+        rm -f tsconfig.json
+        rm -f helper.d.ts
+        mv dist/src/ ./
+        rm -Rf dist/
+        node package-dist.js
+        rm -f package-dist.js
+        yarn install --production
+    fi
