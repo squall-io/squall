@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "yarn run tsc --project src/tsconfig.json",
+    "build:test": "yarn run tsc --project spec/tsconfig.json",
     "dev": "yarn run nodemon --ext ts --ignore node_modules --exec \"yarn test\"",
     "test": "yarn run ts-node --project spec/tsconfig.json \"$( yarn bin jasmine )\""
   },
