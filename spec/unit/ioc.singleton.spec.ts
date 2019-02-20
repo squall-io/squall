@@ -127,7 +127,7 @@ describe( '@Singleton', () =>
 
                     expect( () =>
                     {
-                        @Singleton( false ) class A1 extends A {}
+                        @Singleton( true ) class A1 extends A {}
 
                         A1;
                     }).not.toThrow();
