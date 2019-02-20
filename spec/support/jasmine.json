@@ -4,6 +4,7 @@
     "../dist/spec/**/*[sS]pec.js"
   ],
   "helpers": [
+    "../node_modules/esm",
     "helpers/**/*.js"
   ],
   "stopSpecOnExpectationFailure": false,
