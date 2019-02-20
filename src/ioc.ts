@@ -93,9 +93,7 @@ export const Singleton = ( overridable = false ) =>
 const singletonSymbol = Symbol();
 const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
 
-const singletonOverridableTrue = new Set<SingletonConstructorLike>();
-const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
-const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
+const singletonConstructorToStageObservableMap = new WeakMap<SingletonConstructorLike, StageObservable<[ {} ]>>();
 
 export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
 {
@@ -121,9 +119,43 @@ export const singletonObservable = new class SingletonStageObservable
      * @param instance instance to determine singleton constructor
      *
      */
-    public getSingletonConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | void
+    public getConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | undefined
     {
-        throw new Error( 'Not yet implemented' );
+        let constructor = <S><unknown>instance.constructor;
+
+        while (
+            constructor !== baseConstructorPrototype &&
+            !Reflect.getOwnPropertyDescriptor(constructor, singletonSymbol) )
+        {
+            constructor = <S> Reflect.getPrototypeOf( constructor );
+        }
+
+        return constructor === baseConstructorPrototype ? void 0 : constructor;
+    }
+
+    /**
+     *
+     * Get unique instance of the given constructor, if available.
+     * Return `void` otherwise.
+     *
+     * @param constructor singleton constructor to get unique instance of
+     *
+     */
+    public getInstance<C extends ConstructorLike>( constructor: C ): InstanceType<C> | void
+    {
+        let instance: InstanceType<C> | void = void 0;
+
+        if ( singletonConstructorToStageObservableMap.has( <SingletonConstructorLike><unknown> constructor ) )
+        {
+            const observer = ({ instance: object }: { instance: InstanceType<C> }) =>
+            {
+                instance = object;
+            };
+
+            this.register( constructor, observer ).unregister( constructor, observer );
+        }
+
+        return instance;
     }
 
     /**
@@ -139,7 +171,11 @@ export const singletonObservable = new class SingletonStageObservable
      */
     public notify<S extends SingletonConstructorLike>({ constructor, instance }: { constructor: S, instance: InstanceType<S> }): this
     {
-        throw new Error( 'Not yet implemented' );
+        const observable = singletonConstructorToStageObservableMap.get( constructor );
+
+        observable && observable.notify({ constructor, instance });
+
+        return this;
     }
 
     /**
@@ -150,9 +186,13 @@ export const singletonObservable = new class SingletonStageObservable
      * @param observers obervers to be called at instantiation OR right away if an instance exists already
      *
      */
-    public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[ InstanceType<C> ]>[] ): this
+    public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
     {
-        throw new Error( 'Not yet implemented' );
+        const observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
+
+        observable && observable.register( ...<ObserverLike<[{}]>[]>observers );
+
+        return this;
     }
 
     /**
@@ -163,8 +203,12 @@ export const singletonObservable = new class SingletonStageObservable
      * @param observers obervers to be unregistered
      *
      */
-    public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[ InstanceType<C> ]>[] ): this
+    public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
     {
-        throw new Error( 'Not yet implemented' );
+        const observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
+
+        observable && observable.unregister( ...<ObserverLike<[{}]>[]>observers );
+
+        return this;
     }
-};
+}();
