@@ -99,8 +99,8 @@ const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
 
 export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
 {
-    overridable: boolean;
-    [ singletonSymbol ]: true;
+    readonly overridable: boolean;
+    readonly [ singletonSymbol ]: true;
 }
 
 export const singletonObservable = new class SingletonStageObservable
