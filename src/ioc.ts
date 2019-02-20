@@ -103,23 +103,66 @@ export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = a
     readonly [ singletonSymbol ]: true;
 }
 
+/**
+ *
+ * A stage observable that report singleton instanciations.
+ *
+ * > **NOTE :** This instance constructor don't extends StageObservable, though it internally rely on it.
+ *
+ * Additionally, this instance provide a method to determine which singleton constructor a given instance belongs to.
+ *
+ */
 export const singletonObservable = new class SingletonStageObservable
 {
+    /**
+     *
+     * Get the constructor of the given potentially singleton instance.
+     *
+     * @param instance instance to determine singleton constructor
+     *
+     */
     public getSingletonConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | void
     {
         throw new Error( 'Not yet implemented' );
     }
 
+    /**
+     *
+     * Calls/Executes the registered observers with a constructor and its singleton
+     * as soon as possible
+     *
+     * > **NOTE :** This method, though public is intented to be called EXCLUSIVELY
+     * > by internal API logic and not tier code.
+     *
+     * @param param0 an object map of a singleton contructor and its instance.
+     *
+     */
     public notify<T>({ constructor, singleton }: { constructor: ConstructorLike<T>, singleton: T }): this
     {
         throw new Error( 'Not yet implemented' );
     }
 
+    /**
+     *
+     * Registers observers to watch for singleton constructor instantiation.
+     *
+     * @param constructor singleton constructor to watch instantiation
+     * @param observers obervers to be called at instantiation OR right away if an instance exists already
+     *
+     */
     public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[ InstanceType<C> ]>[] ): this
     {
         throw new Error( 'Not yet implemented' );
     }
 
+    /**
+     *
+     * Unregisters observers for a given singleton constructor
+     *
+     * @param constructor singleton constructor to unregister obervers
+     * @param observers obervers to be unregistered
+     *
+     */
     public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[ InstanceType<C> ]>[] ): this
     {
         throw new Error( 'Not yet implemented' );
