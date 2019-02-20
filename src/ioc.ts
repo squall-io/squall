@@ -1,3 +1,7 @@
+import { ObserverLike } from './observe';
+
+
+
 /**
  *
  * @Singleton
@@ -81,3 +85,26 @@ const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
 const singletonOverridableTrue = new Set<ConstructorLike>();
 const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
 const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
+
+export const singletonObservable = new class SingletonStageObservable
+{
+    public getSingletonConstructor<C extends ConstructorLike>( instance: InstanceType<C> ): { constructor: C, overridable: boolean } | void
+    {
+        throw new Error( 'Not yet implemented' );
+    }
+
+    public notify<T>({ constructor, singleton }: { constructor: ConstructorLike<T>, singleton: T }): this
+    {
+        throw new Error( 'Not yet implemented' );
+    }
+
+    public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[ InstanceType<C> ]>[] ): this
+    {
+        throw new Error( 'Not yet implemented' );
+    }
+
+    public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[ InstanceType<C> ]>[] ): this
+    {
+        throw new Error( 'Not yet implemented' );
+    }
+};
