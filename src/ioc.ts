@@ -42,7 +42,18 @@
 export const Singleton = ( overridable = false ) =>
     <C extends ConstructorLike>( target: C ): C =>
     {
-        return {
+        let constructor: ConstructorLike = target;
+
+        do {
+            constructor = <ConstructorLike> Reflect.getPrototypeOf( constructor );
+
+            if ( singletonOverridableTrue.has( constructor ) )
+            {
+                throw new Error( `abc...` );
+            }
+        } while ( constructor !== baseContructorPrototype );
+
+        const clazz = {
             [ target.name ]: class extends target
             {
                 public constructor( ...parameters: any[] )
@@ -59,7 +70,14 @@ export const Singleton = ( overridable = false ) =>
                 }
             }
         }[ target.name ];
+
+        overridable && singletonOverridableTrue.add( clazz );
+
+        return clazz;
     }
 
+const baseContructorPrototype = Reflect.getPrototypeOf( Function );
+
+const singletonOverridableTrue = new Set<ConstructorLike>();
 const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
 const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
