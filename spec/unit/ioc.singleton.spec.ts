@@ -77,4 +77,32 @@ describe( '@Singleton', () =>
 
     });
 
+    describe( 'multi-level singleton', () =>
+    {
+
+        describe( '()', () =>
+        {
+
+            describe( '> ()', () =>
+            {
+
+                it( 'does not throw an error', () =>
+                {
+                    @Singleton() class A {}
+
+                    expect( () =>
+                    {
+                        @Singleton()
+                        class A1 extends A {}
+
+                        A1;
+                    }).not.toThrow();
+                });
+
+            });
+
+        });
+
+    });
+
 });
