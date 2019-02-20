@@ -137,7 +137,7 @@ export const singletonObservable = new class SingletonStageObservable
      * @param param0 an object map of a singleton contructor and its instance.
      *
      */
-    public notify<T>({ constructor, singleton }: { constructor: ConstructorLike<T>, singleton: T }): this
+    public notify<S extends SingletonConstructorLike>({ constructor, instance }: { constructor: S, instance: InstanceType<S> }): this
     {
         throw new Error( 'Not yet implemented' );
     }
