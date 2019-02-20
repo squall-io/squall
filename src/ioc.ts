@@ -44,20 +44,20 @@ import { ObserverLike } from './observe';
  *
  */
 export const Singleton = ( overridable = false ) =>
-    <C extends ConstructorLike>( target: C ): C =>
+    <C extends ConstructorLike, S extends SingletonConstructorLike<InstanceType<C>>>( target: C ): S =>
     {
-        let constructor: ConstructorLike = target;
+        let constructor: SingletonConstructorLike = <S><unknown> target;
 
         do {
-            constructor = <ConstructorLike> Reflect.getPrototypeOf( constructor );
+            constructor = <SingletonConstructorLike> Reflect.getPrototypeOf( constructor );
 
             if ( singletonOverridableTrue.has( constructor ) )
             {
                 throw new Error( `abc...` );
             }
-        } while ( constructor !== baseConstructorPrototype );
+        } while ( constructor !== baseConstructorPrototype || constructor[ singletonSymbol ] );
 
-        const clazz = {
+        const clazz: S = <S><unknown> {
             [ target.name ]: class extends target
             {
                 public constructor( ...parameters: any[] )
@@ -76,15 +76,26 @@ export const Singleton = ( overridable = false ) =>
         }[ target.name ];
 
         overridable && singletonOverridableTrue.add( clazz );
+        Reflect.defineProperty( clazz, singletonSymbol, {
+            enumerable: false,
+            writable: false,
+            value: true,
+        });
 
         return clazz;
     }
 
+const singletonSymbol = Symbol();
 const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
 
-const singletonOverridableTrue = new Set<ConstructorLike>();
+const singletonOverridableTrue = new Set<SingletonConstructorLike>();
 const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
 const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
+
+interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
+{
+    [ singletonSymbol ]: true;
+}
 
 export const singletonObservable = new class SingletonStageObservable
 {
