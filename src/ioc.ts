@@ -51,7 +51,7 @@ export const Singleton = ( overridable = false ) =>
             {
                 throw new Error( `abc...` );
             }
-        } while ( constructor !== baseContructorPrototype );
+        } while ( constructor !== baseConstructorPrototype );
 
         const clazz = {
             [ target.name ]: class extends target
@@ -76,7 +76,7 @@ export const Singleton = ( overridable = false ) =>
         return clazz;
     }
 
-const baseContructorPrototype = Reflect.getPrototypeOf( Function );
+const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
 
 const singletonOverridableTrue = new Set<ConstructorLike>();
 const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
