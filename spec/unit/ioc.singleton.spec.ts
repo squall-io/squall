@@ -86,7 +86,7 @@ describe( '@Singleton', () =>
             describe( '> ()', () =>
             {
 
-                it( 'throws an error', () =>
+                it( 'throws no error', () =>
                 {
                     @Singleton() class A {}
 
@@ -104,7 +104,7 @@ describe( '@Singleton', () =>
             describe( '> ( false )', () =>
             {
 
-                it( 'throws an error', () =>
+                it( 'throw no error', () =>
                 {
                     @Singleton() class A {}
 
@@ -121,7 +121,7 @@ describe( '@Singleton', () =>
             describe( '> ( true )', () =>
             {
 
-                it( 'throws an error', () =>
+                it( 'throws no error', () =>
                 {
                     @Singleton() class A {}
 
@@ -143,7 +143,7 @@ describe( '@Singleton', () =>
             describe( '> ()', () =>
             {
 
-                it( 'does not throw an error', () =>
+                it( 'throws an error', () =>
                 {
                     @Singleton( true ) class A {}
 
@@ -161,7 +161,7 @@ describe( '@Singleton', () =>
             describe( '> ( false )', () =>
             {
 
-                it( 'does not throw an error', () =>
+                it( 'throws an error', () =>
                 {
                     @Singleton( true ) class A {}
 
@@ -178,7 +178,7 @@ describe( '@Singleton', () =>
             describe( '> ( true )', () =>
             {
 
-                it( 'does not throw an error', () =>
+                it( 'throws an error', () =>
                 {
                     @Singleton( true ) class A {}
 
@@ -200,7 +200,7 @@ describe( '@Singleton', () =>
             describe( '> ()', () =>
             {
 
-                it( 'throws an error', () =>
+                it( 'throws no error', () =>
                 {
                     @Singleton( false ) class A {}
 
@@ -218,7 +218,7 @@ describe( '@Singleton', () =>
             describe( '> ( false )', () =>
             {
 
-                it( 'throws an error', () =>
+                it( 'throws no error', () =>
                 {
                     @Singleton( false ) class A {}
 
@@ -235,7 +235,7 @@ describe( '@Singleton', () =>
             describe( '> ( true )', () =>
             {
 
-                it( 'throws an error', () =>
+                it( 'throws no error', () =>
                 {
                     @Singleton( false ) class A {}
 
