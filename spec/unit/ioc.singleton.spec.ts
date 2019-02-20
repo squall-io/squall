@@ -181,6 +181,8 @@ describe( '@Singleton', () =>
                     @Singleton( false ) class A1 extends A {};
 
                     const instance = new A1();
+                    instance;
+
                     const spy = jasmine.createSpy();
 
                     singletonObservable.register( A1, spy );
