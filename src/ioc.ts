@@ -41,21 +41,25 @@
  */
 export const Singleton = ( overridable = false ) =>
     <C extends ConstructorLike>( target: C ): C =>
-        class extends target
-        {
-            public constructor( ...parameters: any[] )
+    {
+        return {
+            [ target.name ]: class extends target
             {
-                super( ...parameters );
-
-                if ( singletonConstructorToInstanceMap.has( target ) )
+                public constructor( ...parameters: any[] )
                 {
-                    throw new Error( `${ target.name } already instantiated.` );
-                }
+                    super( ...parameters );
 
-                singletonInstanceToConstructorMap.set( this, target );
-                singletonConstructorToInstanceMap.set( target, this );
+                    if ( singletonConstructorToInstanceMap.has( target ) )
+                    {
+                        throw new Error( `${ target.name } already instantiated.` );
+                    }
+
+                    singletonInstanceToConstructorMap.set( this, target );
+                    singletonConstructorToInstanceMap.set( target, this );
+                }
             }
-        };
+        }[ target.name ];
+    }
 
 const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
 const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
