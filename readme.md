@@ -24,4 +24,3 @@ While this is still an unfinished work, here is a task list before release v1.0.
   - [ ] `@Bootstrap`
   - [ ] `Application`
 
-*Documentation generated with [doxdox](https://github.com/neogeek/doxdox).*
