@@ -137,6 +137,29 @@ describe( '@Singleton', () =>
 
         });
 
+        describe( '( true )', () =>
+        {
+
+            describe( '> ()', () =>
+            {
+
+                it( 'does not throw an error', () =>
+                {
+                    @Singleton( true ) class A {}
+
+                    expect( () =>
+                    {
+                        @Singleton()
+                        class A1 extends A {}
+
+                        A1;
+                    }).toThrow();
+                });
+
+            });
+
+        });
+
         describe( '( false )', () =>
         {
 
