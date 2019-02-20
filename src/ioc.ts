@@ -1,4 +1,4 @@
-import { ObserverLike } from './observe';
+import { ObserverLike, StageObservable } from './observe';
 
 
 
@@ -48,14 +48,10 @@ export const Singleton = ( overridable = false ) =>
     {
         let constructor: SingletonConstructorLike = <S><unknown> target;
 
-        do {
-            constructor = <SingletonConstructorLike> Reflect.getPrototypeOf( constructor );
-
-            if ( singletonOverridableTrue.has( constructor ) )
-            {
-                throw new Error( `abc...` );
-            }
-        } while ( constructor !== baseConstructorPrototype || constructor[ singletonSymbol ] );
+        if ( constructor.overridable )
+        {
+            throw new Error( `abc...` );
+        }
 
         const clazz: S = <S><unknown> {
             [ target.name ]: class extends target
@@ -63,19 +59,21 @@ export const Singleton = ( overridable = false ) =>
                 public constructor( ...parameters: any[] )
                 {
                     super( ...parameters );
+                    constructor = singletonObservable.getConstructor( this )!;
 
-                    if ( singletonConstructorToInstanceMap.has( target ) )
+                    if ( singletonObservable.getInstance( constructor ) )
                     {
                         throw new Error( `${ target.name } already instantiated.` );
                     }
-
-                    singletonInstanceToConstructorMap.set( this, target );
-                    singletonConstructorToInstanceMap.set( target, this );
+                    else if ( constructor === clazz )
+                    {
+                        singletonObservable.notify({ constructor, instance: this });
+                    }
                 }
             }
         }[ target.name ];
 
-        overridable && singletonOverridableTrue.add( clazz );
+        singletonConstructorToStageObservableMap.set( clazz, new StageObservable() );
         Reflect.defineProperty( clazz, 'overridable', {
             value: overridable,
             enumerable: false,
