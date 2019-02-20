@@ -7,7 +7,7 @@
     "build": "yarn run tsc --project src/tsconfig.json",
     "build:test": "yarn run tsc --project spec/tsconfig.json",
     "dev": "yarn run chokidar \"src/**/*.ts\" \"spec/**/*.ts\" --command \"yarn test\"",
-    "build:docs": "yarn build && yarn run doxdox 'dist/src/**/*.js' --output DOCUMENTATION.md"
+    "build:docs": "echo \"not yet available\" && exit -1"
   },
   "keywords": [],
   "author": "",
