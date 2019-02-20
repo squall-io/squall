@@ -96,7 +96,7 @@ describe( '@Singleton', () =>
                         class A1 extends A {}
 
                         A1;
-                    }).toThrow();
+                    }).not.toThrow();
                 });
 
             });
@@ -113,7 +113,7 @@ describe( '@Singleton', () =>
                         @Singleton( false ) class A1 extends A {}
 
                         A1;
-                    }).toThrow();
+                    }).not.toThrow();
                 });
 
             });
@@ -130,7 +130,7 @@ describe( '@Singleton', () =>
                         @Singleton( true ) class A1 extends A {}
 
                         A1;
-                    }).toThrow();
+                    }).not.toThrow();
                 });
 
             });
@@ -153,7 +153,7 @@ describe( '@Singleton', () =>
                         class A1 extends A {}
 
                         A1;
-                    }).not.toThrow();
+                    }).toThrow();
                 });
 
             });
@@ -170,7 +170,7 @@ describe( '@Singleton', () =>
                         @Singleton( false ) class A1 extends A {}
 
                         A1;
-                    }).not.toThrow();
+                    }).toThrow();
                 });
 
             });
@@ -187,7 +187,7 @@ describe( '@Singleton', () =>
                         @Singleton( true ) class A1 extends A {}
 
                         A1;
-                    }).not.toThrow();
+                    }).toThrow();
                 });
 
             });
@@ -210,7 +210,7 @@ describe( '@Singleton', () =>
                         class A1 extends A {}
 
                         A1;
-                    }).toThrow();
+                    }).not.toThrow();
                 });
 
             });
@@ -227,7 +227,7 @@ describe( '@Singleton', () =>
                         @Singleton( false ) class A1 extends A {}
 
                         A1;
-                    }).toThrow();
+                    }).not.toThrow();
                 });
 
             });
@@ -244,7 +244,7 @@ describe( '@Singleton', () =>
                         @Singleton( true ) class A1 extends A {}
 
                         A1;
-                    }).toThrow();
+                    }).not.toThrow();
                 });
 
             });
