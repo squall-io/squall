@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Squall - The hybrid TypeScript, microservice optimized framework",
   "scripts": {
-    "test": "yarn  build:test && yarn run jasmine",
+    "test": "yarn build:test && yarn run jasmine",
     "build": "yarn run tsc --project src/tsconfig.json",
     "build:test": "yarn run tsc --project spec/tsconfig.json",
     "dev": "yarn run nodemon --ext ts --ignore dist --ignore node_modules --exec \"yarn test\""
