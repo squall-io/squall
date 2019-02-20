@@ -32,7 +32,7 @@ export class Observable<VV extends any[] = []>
      */
     public notify( ...values: VV ): this
     {
-        for ( let observer of Array.from( observables.get( this )! ) )
+        for ( let observer of observables.get( this )! )
         {
             observer( ...values );
         }

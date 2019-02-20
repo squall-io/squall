@@ -19,6 +19,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
+    "downlevelIteration": true,
   },
   "exclude": [
     "node_modules/",
