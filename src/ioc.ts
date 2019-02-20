@@ -76,6 +76,11 @@ export const Singleton = ( overridable = false ) =>
         }[ target.name ];
 
         overridable && singletonOverridableTrue.add( clazz );
+        Reflect.defineProperty( clazz, 'overridable', {
+            value: overridable,
+            enumerable: false,
+            writable: false,
+        });
         Reflect.defineProperty( clazz, singletonSymbol, {
             enumerable: false,
             writable: false,
@@ -92,14 +97,15 @@ const singletonOverridableTrue = new Set<SingletonConstructorLike>();
 const singletonInstanceToConstructorMap = new WeakMap<{}, ConstructorLike>();
 const singletonConstructorToInstanceMap = new WeakMap<ConstructorLike, {}>();
 
-interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
+export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
 {
+    overridable: boolean;
     [ singletonSymbol ]: true;
 }
 
 export const singletonObservable = new class SingletonStageObservable
 {
-    public getSingletonConstructor<C extends ConstructorLike>( instance: InstanceType<C> ): { constructor: C, overridable: boolean } | void
+    public getSingletonConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | void
     {
         throw new Error( 'Not yet implemented' );
     }
