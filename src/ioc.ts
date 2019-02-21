@@ -90,13 +90,6 @@ const singletonSymbol = Symbol();
 const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
 const singletonConstructorToStageObservableMap = new WeakMap<SingletonConstructorLike, StageObservable<[ {} ]>>();
 
-let instance: {} | void = void 0;
-let observable: StageObservable<[{}]> | void = void 0;
-const observer = ({ instance: object }: { instance: {} }) =>
-{
-    instance = object;
-};
-
 export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
 {
     readonly overridable: boolean;
@@ -112,94 +105,104 @@ export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = a
  * Additionally, this instance provide a method to determine which singleton constructor a given instance belongs to.
  *
  */
-export const singletonObservable = new class SingletonStageObservable
+export const singletonObservable = ( () =>
 {
-    /**
-     *
-     * Get the constructor of the given potentially singleton instance.
-     *
-     * @param instance instance to determine singleton constructor
-     *
-     */
-    public getConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | undefined
+    let instance: {} | void = void 0;
+    let observable: StageObservable<[{}]> | void = void 0;
+    const observer = ({ instance: object }: { instance: {} }) =>
     {
-        let constructor = <S><unknown>instance.constructor;
+        instance = object;
+    };
 
-        while ( constructor[ singletonSymbol ] &&
-            constructor !== baseConstructorPrototype &&
-            !Reflect.getOwnPropertyDescriptor(constructor, singletonSymbol) )
+    return new class SingletonStageObservable
+    {
+        /**
+         *
+         * Get the constructor of the given potentially singleton instance.
+         *
+         * @param instance instance to determine singleton constructor
+         *
+         */
+        public getConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | undefined
         {
-            constructor = <S> Reflect.getPrototypeOf( constructor );
+            let constructor = <S><unknown>instance.constructor;
+
+            while ( constructor[ singletonSymbol ] &&
+                constructor !== baseConstructorPrototype &&
+                !Reflect.getOwnPropertyDescriptor(constructor, singletonSymbol) )
+            {
+                constructor = <S> Reflect.getPrototypeOf( constructor );
+            }
+
+            return constructor === baseConstructorPrototype ? void 0 : constructor;
         }
 
-        return constructor === baseConstructorPrototype ? void 0 : constructor;
-    }
+        /**
+         *
+         * Get unique instance of the given constructor, if available.
+         * Return `void` otherwise.
+         *
+         * @param constructor singleton constructor to get unique instance of
+         *
+         */
+        public getInstance<C extends ConstructorLike>( constructor: C ): InstanceType<C> | void
+        {
+            instance = void 0;
+            singletonConstructorToStageObservableMap.has( <SingletonConstructorLike><unknown> constructor ) &&
+                this.register( constructor, observer ).unregister( constructor, observer );
 
-    /**
-     *
-     * Get unique instance of the given constructor, if available.
-     * Return `void` otherwise.
-     *
-     * @param constructor singleton constructor to get unique instance of
-     *
-     */
-    public getInstance<C extends ConstructorLike>( constructor: C ): InstanceType<C> | void
-    {
-        instance = void 0;
-        singletonConstructorToStageObservableMap.has( <SingletonConstructorLike><unknown> constructor ) &&
-            this.register( constructor, observer ).unregister( constructor, observer );
+            return instance;
+        }
 
-        return instance;
-    }
+        /**
+         *
+         * Calls/Executes the registered observers with a constructor and its singleton
+         * as soon as possible
+         *
+         * > **NOTE :** This method, though public is intented to be called EXCLUSIVELY
+         * > by internal API logic and not tier code.
+         *
+         * @param param0 an object map of a singleton contructor and its instance.
+         *
+         */
+        public notify<S extends SingletonConstructorLike>({ constructor, instance }: { constructor: S, instance: InstanceType<S> }): this
+        {
+            observable = singletonConstructorToStageObservableMap.get( constructor );
+            observable && observable.notify({ constructor, instance });
 
-    /**
-     *
-     * Calls/Executes the registered observers with a constructor and its singleton
-     * as soon as possible
-     *
-     * > **NOTE :** This method, though public is intented to be called EXCLUSIVELY
-     * > by internal API logic and not tier code.
-     *
-     * @param param0 an object map of a singleton contructor and its instance.
-     *
-     */
-    public notify<S extends SingletonConstructorLike>({ constructor, instance }: { constructor: S, instance: InstanceType<S> }): this
-    {
-        observable = singletonConstructorToStageObservableMap.get( constructor );
-        observable && observable.notify({ constructor, instance });
+            return this;
+        }
 
-        return this;
-    }
+        /**
+         *
+         * Registers observers to watch for singleton constructor instantiation.
+         *
+         * @param constructor singleton constructor to watch instantiation
+         * @param observers obervers to be called at instantiation OR right away if an instance exists already
+         *
+         */
+        public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
+        {
+            observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
+            observable && observable.register( ...<ObserverLike<[{}]>[]>observers );
 
-    /**
-     *
-     * Registers observers to watch for singleton constructor instantiation.
-     *
-     * @param constructor singleton constructor to watch instantiation
-     * @param observers obervers to be called at instantiation OR right away if an instance exists already
-     *
-     */
-    public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
-    {
-        observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
-        observable && observable.register( ...<ObserverLike<[{}]>[]>observers );
+            return this;
+        }
 
-        return this;
-    }
+        /**
+         *
+         * Unregisters observers for a given singleton constructor
+         *
+         * @param constructor singleton constructor to unregister obervers
+         * @param observers obervers to be unregistered
+         *
+         */
+        public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
+        {
+            observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
+            observable && observable.unregister( ...<ObserverLike<[{}]>[]>observers );
 
-    /**
-     *
-     * Unregisters observers for a given singleton constructor
-     *
-     * @param constructor singleton constructor to unregister obervers
-     * @param observers obervers to be unregistered
-     *
-     */
-    public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
-    {
-        observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
-        observable && observable.unregister( ...<ObserverLike<[{}]>[]>observers );
-
-        return this;
-    }
-}();
+            return this;
+        }
+    }();
+})();
