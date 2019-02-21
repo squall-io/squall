@@ -48,7 +48,7 @@ export const Singleton = ( overridable = false ) =>
     {
         if ( (<S><unknown> target).overridable )
         {
-            throw new Error( `abc...` );
+            throw new Error( `Singleton is not applicable to class ${ target.name }` );
         }
 
         const clazz: S = <S><unknown> {
