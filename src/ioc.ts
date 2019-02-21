@@ -207,6 +207,14 @@ export const singletonObservable = ( () =>
     }();
 })();
 
+/**
+ *
+ * Marks a constructor or a static member as source of
+ * data for the dependency injection's Injector.
+ *
+ * When applied to constructor or method, it accepts default parameters.
+ *
+ */
 export const Injectable: InjectableLike = ( parameters: { [index: number]: any } = {} ) =>
     <C extends ConstructorLike>( target: C, member?: keyof C, descriptor?: PropertyDescriptor ): void =>
     {
