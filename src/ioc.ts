@@ -214,6 +214,11 @@ export const singletonObservable = ( () =>
  *
  * When applied to constructor or method, it accepts default parameters.
  *
+ * @param param0 optional, configure the injectable
+ * @param param0.id optional, uniq ID for the injected value. This ID is unique per injector.
+ * @param param0.once optional, should this value be fetch once (true) or each time it is needed
+ * @param param0.parameters  optional, values to be passed as parameters, at given position, void otherwise.
+ *
  */
 export const Injectable: InjectableLike = ({ id, once = true, parameters = {} }: { id?: string, once?: boolean, parameters?: { [index: number]: any } } = {}) =>
     <C extends ConstructorLike>( target: C, member?: keyof C, descriptor?: PropertyDescriptor ): void =>
