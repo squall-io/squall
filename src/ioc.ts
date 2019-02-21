@@ -119,7 +119,8 @@ export const singletonObservable = new class SingletonStageObservable
     {
         let constructor = <S><unknown>instance.constructor;
 
-        while ( constructor !== baseConstructorPrototype &&
+        while ( constructor[ singletonSymbol ] &&
+            constructor !== baseConstructorPrototype &&
             !Reflect.getOwnPropertyDescriptor(constructor, singletonSymbol) )
         {
             constructor = <S> Reflect.getPrototypeOf( constructor );
