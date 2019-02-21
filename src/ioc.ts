@@ -44,11 +44,9 @@ import { ObserverLike, StageObservable } from './observe';
  *
  */
 export const Singleton = ( overridable = false ) =>
-    <C extends ConstructorLike, S extends SingletonConstructorLike<InstanceType<C>>>( target: C ): S =>
+    <C extends ConstructorLike, S extends SingletonConstructorLike>( target: C ): S =>
     {
-        let constructor: SingletonConstructorLike = <S><unknown> target;
-
-        if ( constructor.overridable )
+        if ( (<S><unknown> target).overridable )
         {
             throw new Error( `abc...` );
         }
@@ -59,7 +57,7 @@ export const Singleton = ( overridable = false ) =>
                 public constructor( ...parameters: any[] )
                 {
                     super( ...parameters );
-                    constructor = singletonObservable.getConstructor( this )!;
+                    let constructor = singletonObservable.getConstructor( this )!;
 
                     if ( singletonObservable.getInstance( constructor ) )
                     {
