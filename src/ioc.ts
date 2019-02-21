@@ -87,13 +87,14 @@ export const Singleton = ( overridable = false ) =>
     }
 
 const singletonSymbol = Symbol();
-let instance: {} | void = void 0;
 const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
+const singletonConstructorToStageObservableMap = new WeakMap<SingletonConstructorLike, StageObservable<[ {} ]>>();
+
+let instance: {} | void = void 0;
 const observer = ({ instance: object }: { instance: {} }) =>
 {
     instance = object;
 };
-const singletonConstructorToStageObservableMap = new WeakMap<SingletonConstructorLike, StageObservable<[ {} ]>>();
 
 export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
 {
