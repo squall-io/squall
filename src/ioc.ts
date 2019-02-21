@@ -215,7 +215,7 @@ export const singletonObservable = ( () =>
  * When applied to constructor or method, it accepts default parameters.
  *
  */
-export const Injectable: InjectableLike = ( parameters: { [index: number]: any } = {} ) =>
+export const Injectable: InjectableLike = ({ id, once = true, parameters = {} }: { id?: string, once?: boolean, parameters?: { [index: number]: any } } = {}) =>
     <C extends ConstructorLike>( target: C, member?: keyof C, descriptor?: PropertyDescriptor ): void =>
     {
         throw new Error( 'Not yet implemented' );
@@ -223,12 +223,12 @@ export const Injectable: InjectableLike = ( parameters: { [index: number]: any }
 
 interface InjectableLike
 {
-    (): {
+    ( configuration?: { id?: string, once?: boolean } ): {
         <C extends ConstructorLike>( target: C): void;
         <C extends ConstructorLike>( target: C, member: KeysNotMappedTo<C, Function> ) : void;
         <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
     }
-    ( parameters: { [index: number]: any } ): {
+    ( configuration?: { id?: string, once?: boolean, parameters?: { [index: number]: any } } ): {
         <C extends ConstructorLike>( target: C ) : void;
         <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
     }
