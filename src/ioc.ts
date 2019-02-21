@@ -206,3 +206,22 @@ export const singletonObservable = ( () =>
         }
     }();
 })();
+
+export const Injectable: InjectableLike = ( parameters: { [index: number]: any } = {} ) =>
+    <C extends ConstructorLike>( target: C, member?: keyof C, descriptor?: PropertyDescriptor ): void =>
+    {
+        throw new Error( 'Not yet implemented' );
+    };
+
+interface InjectableLike
+{
+    (): {
+        <C extends ConstructorLike>( target: C): void;
+        <C extends ConstructorLike>( target: C, member: KeysNotMappedTo<C, Function> ) : void;
+        <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
+    }
+    ( parameters: { [index: number]: any } ): {
+        <C extends ConstructorLike>( target: C ) : void;
+        <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
+    }
+}
