@@ -91,6 +91,7 @@ const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
 const singletonConstructorToStageObservableMap = new WeakMap<SingletonConstructorLike, StageObservable<[ {} ]>>();
 
 let instance: {} | void = void 0;
+let observable: StageObservable<[{}]> | void = void 0;
 const observer = ({ instance: object }: { instance: {} }) =>
 {
     instance = object;
@@ -164,8 +165,7 @@ export const singletonObservable = new class SingletonStageObservable
      */
     public notify<S extends SingletonConstructorLike>({ constructor, instance }: { constructor: S, instance: InstanceType<S> }): this
     {
-        const observable = singletonConstructorToStageObservableMap.get( constructor );
-
+        observable = singletonConstructorToStageObservableMap.get( constructor );
         observable && observable.notify({ constructor, instance });
 
         return this;
@@ -181,8 +181,7 @@ export const singletonObservable = new class SingletonStageObservable
      */
     public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
     {
-        const observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
-
+        observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
         observable && observable.register( ...<ObserverLike<[{}]>[]>observers );
 
         return this;
@@ -198,8 +197,7 @@ export const singletonObservable = new class SingletonStageObservable
      */
     public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
     {
-        const observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
-
+        observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
         observable && observable.unregister( ...<ObserverLike<[{}]>[]>observers );
 
         return this;
