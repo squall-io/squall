@@ -220,7 +220,7 @@ export const singletonObservable = ( () =>
  * @param param0.parameters  optional, values to be passed as parameters, at given position, void otherwise.
  *
  */
-export const Injectable: InjectableLike = ({ id, once = true, parameters = {} }: InjectableConstructorConfigurationLike = {}) =>
+export const Injectable: InjectableLike = ({ id, once = true, parameters = {} }: Partial<InjectableConstructorConfigurationLike> = {}) =>
     <C extends ConstructorLike>( target: C, member?: keyof C, descriptor?: PropertyDescriptor ): void =>
     {
         throw new Error( 'Not yet implemented' );
@@ -228,12 +228,12 @@ export const Injectable: InjectableLike = ({ id, once = true, parameters = {} }:
 
 interface InjectableLike
 {
-    ( configuration?: InjectableConfigurationLike ): {
+    ( configuration?: Partial<InjectableConfigurationLike> ): {
         <C extends ConstructorLike>( target: C): void;
         <C extends ConstructorLike>( target: C, member: KeysNotMappedTo<C, Function> ) : void;
         <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
     }
-    ( configuration?: InjectableConstructorConfigurationLike ): {
+    ( configuration?: Partial<InjectableConstructorConfigurationLike> ): {
         <C extends ConstructorLike>( target: C ) : void;
         <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
     }
@@ -242,11 +242,11 @@ interface InjectableLike
 interface InjectableConfigurationLike
 {
     id?: string;
-    once?: boolean;
+    once: boolean;
 }
 interface InjectableConstructorConfigurationLike extends InjectableConfigurationLike
 {
-    parameters?: { [index: number]: any };
+    parameters: { [index: number]: any };
 }
 
 /**
