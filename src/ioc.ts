@@ -248,3 +248,29 @@ interface InjectableConstructorConfigurationLike extends InjectableConfiguration
 {
     parameters?: { [index: number]: any };
 }
+
+/**
+ *
+ * Metadata of injectables -
+ *
+ * They are organized by kind : methods, properties and/or constructors
+ *
+ */
+export const injectableMetadata = {
+    get methods(): InjectableMethodMetadataLike[]
+    {
+        throw new Error( 'Not yet implemented' );
+    },
+    get properties(): InjectablePropertyMetadataLike[]
+    {
+        throw new Error( 'Not yet implemented' );
+    },
+    get constructors(): InjectableConstructorMetadataLike[]
+    {
+        throw new Error( 'Not yet implemented' );
+    },
+};
+
+type InjectableMethodMetadataLike = InjectableConstructorConfigurationLike & { target: ConstructorLike, member: PropertyKey };
+type InjectablePropertyMetadataLike = InjectableConfigurationLike & { target: ConstructorLike, member: PropertyKey };
+type InjectableConstructorMetadataLike = InjectableConstructorConfigurationLike & { target: ConstructorLike };
