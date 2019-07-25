@@ -1,3 +1,5 @@
 dist
 *.log
 node_modules
+/spec/tsc.build.json
+/tsc.build.json
