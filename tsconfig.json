@@ -20,6 +20,9 @@
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
+
+    "incremental": true,
+    "tsBuildInfoFile": "./tsc.build.json",
   },
   "exclude": [
     "node_modules/",

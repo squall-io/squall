@@ -4,7 +4,8 @@
         "outDir": "../dist/spec",
         "types": [
             "jasmine",
-        ]
+        ],
+        "tsBuildInfoFile": "./tsc.build.json",
     },
     "include": [
         ".",
