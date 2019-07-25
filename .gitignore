@@ -1,5 +1,5 @@
-dist
+/dist
 *.log
-node_modules
+/node_modules
 /spec/tsc.build.json
 /tsc.build.json
