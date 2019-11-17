@@ -7,7 +7,7 @@
     "test": "yarn build:test && yarn run jasmine",
     "build": "yarn run tsc --project src/tsconfig.json",
     "build:test": "yarn run tsc --project spec/tsconfig.json",
-    "dev": "yarn run chokidar \"src/**/*.ts\" \"spec/**/*.ts\" --command \"yarn test\"",
+    "dev": "yarn run nodemon --exec \"yarn test\"",
     "build:docs": "echo \"not yet available\" && exit -1"
   },
   "keywords": [],
@@ -17,10 +17,10 @@
     "@types/jasmine": "^3.3.5",
     "@types/lodash": "^4.14.119",
     "@types/uuid": "^3.4.4",
-    "chokidar-cli": "^1.2.2",
     "esm": "^3.2.5",
     "jasmine": "^3.3.1",
     "lodash": "^4.17.11",
+    "nodemon": "^1.19.4",
     "source-map-support": "^0.5.10",
     "tslint": "^5.12.1",
     "typescript": "^3.7.2",
@@ -28,5 +28,12 @@
   },
   "dependencies": {
     "tslib": "^1.9.3"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/*"
+    ],
+    "ext": "ts,json",
+    "delay": "2500"
   }
 }
