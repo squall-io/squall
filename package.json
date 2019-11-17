@@ -4,10 +4,10 @@
   "type": "module",
   "description": "Squall - The hybrid TypeScript, microservice optimized framework",
   "scripts": {
-    "test": "yarn build:test && yarn run jasmine",
-    "build": "yarn run tsc --project src/tsconfig.json",
-    "build:test": "yarn run tsc --project spec/tsconfig.json",
-    "dev": "yarn run nodemon --exec \"yarn test\"",
+    "test": "yarn build:test && yarn jasmine",
+    "dev": "yarn nodemon --exec \"yarn test\"",
+    "build": "yarn tsc --project src/tsconfig.json",
+    "build:test": "yarn tsc --project spec/tsconfig.json",
     "build:docs": "echo \"not yet available\" && exit -1"
   },
   "keywords": [],
