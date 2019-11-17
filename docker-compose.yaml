@@ -6,5 +6,6 @@ services:
       context: .
       target: dev
     volumes:
-    - /opt/app/dist
     - /opt/app/node_modules
+    - /opt/app/dist
+    - .:/opt/app
