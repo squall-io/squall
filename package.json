@@ -38,5 +38,8 @@
     ],
     "ext": "ts,json",
     "delay": "2500"
+  },
+  "esm": {
+    "sourceMap": true
   }
 }
