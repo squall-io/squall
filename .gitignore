@@ -3,4 +3,7 @@
 
 /spec/tsc.build.json
 /tsc.build.json
+*.d.ts
 *.log
+*.map
+*.js

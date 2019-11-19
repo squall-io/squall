@@ -3,6 +3,7 @@
 /.git
 
 /docker-compose.yaml
+/tsc.build.json
 /tslint.yaml
 /.gitignore
 /Dockerfile

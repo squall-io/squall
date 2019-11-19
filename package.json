@@ -32,7 +32,9 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "node_modules/*"
+      "node_modules/*",
+      "spec/**/*.d.ts",
+      "src/**/*.d.ts"
     ],
     "ext": "ts,json",
     "delay": "2500"
