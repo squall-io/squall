@@ -6,8 +6,8 @@
   "scripts": {
     "build": "yarn tsc --project src",
     "build:test": "yarn tsc --project spec",
-    "test": "yarn build:test && yarn jasmine",
     "dev": "yarn nodemon --exec \"yarn test\"",
+    "test": "yarn build:test || exit 1 && yarn jasmine",
     "build:docs": "echo \"not yet implemented\" && exit -1"
   },
   "keywords": [],
