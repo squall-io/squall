@@ -1,6 +1,9 @@
 /node_modules
 /dist
 
+/.vscode
+/.idea
+
 /spec/tsc.build.json
 /tsc.build.json
 *.d.ts
