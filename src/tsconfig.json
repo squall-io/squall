@@ -1,6 +1,10 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-      "inlineSourceMap": false,
-    }
+        "outDir": "../dist/src",
+    },
+    "include": [
+        "../helper.d.ts",
+        ".",
+    ],
 }

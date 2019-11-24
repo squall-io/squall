@@ -3,7 +3,6 @@
     "lib": [
       "esnext",
     ],
-    "removeComments": false,
     "importHelpers": false,
     "noUnusedLocals": true,
     "alwaysStrict": true,
@@ -16,18 +15,13 @@
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
-    "inlineSourceMap": true,
+    "inlineSourceMap": false,
     "esModuleInterop": true,
-
-    "tsBuildInfoFile": "./tsc.build.json",
     "incremental": true,
     "outDir": "dist",
   },
   "exclude": [
     "node_modules",
     "dist",
-  ],
-  "include": [
-    ".",
   ],
 }

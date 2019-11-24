@@ -1,8 +1,14 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
+        "inlineSourceMap": false,
+        "removeComments": true,
         "types": [
             "jasmine",
-        ]
-    }
+        ],
+    },
+    "include": [
+        "../helper.d.ts",
+        ".",
+    ],
 }
