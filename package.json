@@ -1,10 +1,9 @@
 {
   "name": "@squall/core",
   "version": "0.0.1",
-  "type": "module",
   "description": "Squall - The hybrid TypeScript, microservice optimized framework",
   "scripts": {
-    "test": "yarn build:test && yarn jasmine",
+    "test": "yarn build:test && NODE_OPTIONS='-r source-map-support/register' yarn jasmine",
     "dev": "yarn nodemon --exec \"yarn test\"",
     "build": "yarn tsc --project src || exit 1",
     "build:test": "yarn tsc --project spec || exit 1",
@@ -12,7 +11,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/jasmine": "^3.3.5",
     "@types/lodash": "^4.14.119",
