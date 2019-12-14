@@ -10,16 +10,15 @@ COPY . ./
 
 
 FROM node:alpine AS build
+RUN apk add --no-cache jq
 ARG NODE_ENV=dev
 WORKDIR /opt/app
-RUN apk add --no-cache jq
-COPY --from=dev /opt/app ./
 
-RUN yarn test
-RUN yarn build
-RUN echo -e "$( jq 'del(.main, .scripts, .devDependencies)' package.json )" > dist/src/package.json
-
-RUN cp -rfT dist/src ../build
-RUN ls -A1 | xargs rm -rf
-RUN cp -rT ../build ./
-RUN rm -r ../build
+COPY --from=dev /opt/app /opt/~app
+RUN yarn --cwd ../~app test
+RUN yarn --cwd ../~app build
+RUN rm -f ../~app/dist/src/tsconfig.tsbuildinfo
+RUN cp -Rf ../~app/LICENSE ../~app/readme.md ../~app/dist/src/* .
+RUN echo -e "$( jq '. += { "type": "module" }' ../~app/package.json )" > package.json
+RUN echo -e "$( jq 'del(.esm, .main, .scripts, .nodemonConfig, .devDependencies)' ../~app/package.json )" > package.json
+RUN rm -Rf ../~app
