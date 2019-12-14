@@ -2,10 +2,8 @@
 /dist
 /.git
 
+/tsconfig.tsbuildinfo
 /docker-compose.yaml
-/tsc.build.json
 /tslint.yaml
 /.gitignore
 /Dockerfile
-/readme.md
-/LICENSE
