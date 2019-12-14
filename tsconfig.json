@@ -18,6 +18,7 @@
     "inlineSourceMap": false,
     "esModuleInterop": true,
     "incremental": true,
+    "sourceMap": true,
     "outDir": "dist",
   },
   "exclude": [
