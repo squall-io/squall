@@ -1,38 +1,47 @@
 /**
  *
- * This class stands as the corridor between they that want to report
- * changes of their internal value and the observers that want to be informed of changes.
+ * Observable
+ *
+ * Instance of this class are meant to report changes of value/s.
+ *
+ * @since Jan 1, 2019
+ * @author Salathiel Genese <salathielgenese@gmail.com>
  *
  */
 export class Observable<VV extends any[] = []>
 {
-    public constructor()
-    {
-        observables.set( this, new Set() );
-    }
+    protected readonly observers = new Set<ObserverLike<VV>>();
 
     /**
      *
-     * Removes all registered observers.
+     * Unregisters all observers.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public reset(): this
     {
-        observables.get( this )!.clear();
+        this.observers.clear();
 
         return this;
     }
 
     /**
      *
-     * Calls/Executes the registered observers with spread values.
+     * Notify observers of value/s change.
      *
-     * @param values
+     * This executes the registered observers with ...values.
+     *
+     * @param values Values to notify observers with.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public notify( ...values: VV ): this
     {
-        for ( let observer of observables.get( this )! )
+        for ( let observer of this.observers )
         {
             observer( ...values );
         }
@@ -42,40 +51,55 @@ export class Observable<VV extends any[] = []>
 
     /**
      *
-     * Returns a boolean (true) if ALL given observers are registered, false otherwise.
+     * Returns a boolean indicating weither given observers are registered.
      *
-     * > If no observer if given, returned value as
-     * >
-     * > - false, means that no observer is registered
-     * > - true, means that at least one observer is registered
+     * true if all observers are registered OR no observer is given but still, some observers are registered - false otherwise.
      *
-     * @param observers
+     * @param observers Observers to check if they are registered.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public has( ...observers: ObserverLike<VV>[] ): boolean
     {
-        const upzervers = observables.get( this )!;
+        const _observers = this.observers;
 
-        return observers.length
-            ? observers.every( observer =>
-                upzervers.has( <ObserverLike<any[]>>observer ) )
-            : !!upzervers.size
+        if ( 0 === observers.length )
+        {
+            return !!_observers.size;
+        }
+
+        for ( let observer of new Set( observers ) )
+        {
+            if ( !_observers.has( observer ) )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      *
-     * Registers given observers to be called/executed over changes on this observable.
+     * Registers given observers to notify them on value/s change.
      *
-     * @param observers
+     * NOTE: Values are deduped so that no observer can be registered more than once.
+     *
+     * @param observers Observers to register.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public register( ...observers: ObserverLike<VV>[] ): this
     {
-        const upzervers = observables.get( this )!;
+        const _observers = this.observers;
 
-        for ( let observer of observers )
+        for ( let observer of new Set( observers ) )
         {
-            upzervers.add( <ObserverLike<any[]>>observer );
+            _observers.add( observer );
         }
 
         return this;
@@ -83,43 +107,70 @@ export class Observable<VV extends any[] = []>
 
     /**
      *
-     * Stop calling/executing given observers over changes on this observable.
+     * Unregisters given obervers.
      *
-     * @param observers
+     * This prevents the removed observers from being notified of subsequent value change/s.
+     *
+     * @param observers Observers to unregister.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public unregister( ...observers: ObserverLike<VV>[] ): this
     {
-        const upzervers = observables.get( this )!;
+        const _observers = this.observers;
 
         for ( let observer of observers )
         {
-            upzervers.delete( <ObserverLike<any[]>>observer );
+            _observers.delete( observer );
         }
 
         return this;
     }
 }
+
 /**
  *
- * This class stands as the corridor between they that want to report
- * changes of their internal value and the observers that want to be informed of changes.
+ * StageObservable
  *
- * > Unlike Observable base class, this instance cache #notify() values
- * > and notifies new registering observers as soon as they are registered.
+ * Instances of this class are like those of Observable except that
+ * latest reported change are cached so that listeners are updated
+ * as soon as they are newly registered.
+ *
+ * @example
+ * ```ts
+ * const observable = new StageObservable<string>();
+ *
+ * observable.notify( '50+ qbits is not enough yet !' ).register( console.log );
+ *
+ * // "50+ qbits is not enough yet !" will logged to the console
+ * ```
+ *
+ * @since Jan 1, 2019
+ * @author Salathiel Genese <salathielgenese@gmail.com>
  *
  */
-export class StageObservable<VV extends any[] = []> extends Observable<VV>
+export class StageObservable<VV extends any[] = any[]> extends Observable<VV>
 {
+
+    private static readonly UNSET = <any[]>[];
+
+    protected values = <VV>StageObservable.UNSET;
 
     /**
      *
-     * Removes all registered observers and clear any cached values.
+     * Unregisters all observers and clear cached value/s.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public reset(): this
     {
-        stages.delete( this );
+        const { UNSET } = StageObservable;
+
+        this.values = <VV>UNSET;
         super.reset();
 
         return this;
@@ -127,16 +178,19 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
 
     /**
      *
-     * Calls/Executes the registered observers with spread values.
+     * Notify observers of value/s change.
      *
-     * > It also caches the parameters for later #register() notification.
+     * This executes the registered observers with ...values.
      *
-     * @param values
+     * @param values Values to notify observers with.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public notify( ...values: VV ): this
     {
-        stages.set( this, values );
+        this.values = values;
         super.notify( ...values );
 
         return this;
@@ -144,28 +198,35 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
 
     /**
      *
-     * Registers given observers to be called/executed over changes on this observable.
+     * Registers given observers to notify them on value/s change.
      *
-     * > If this observable had some values cached, freshly
-     * > registered observers are called/executed immediately.
+     * NOTE: Values are deduped so that no observer can be registered more than once.
      *
-     * @param observers
+     * NOTE: If any value/s are cached, notify new (yet unregistered) observers with.
+     *
+     * @param observers Observers to register.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public register( ...observers: ObserverLike<VV>[] ): this
     {
-        const upzervers = observables.get( this )!;
-        const freshly = observers.filter( observer => !upzervers.has( <ObserverLike<any[]>>observer ) );
+        const { values, observers: _observers } = this;
 
-        super.register( ...observers );
+        observers = [ ...new Set( observers ) ];
 
-        if ( stages.has( this ) )
+        if ( StageObservable.UNSET === values )
         {
-            const values = stages.get( this )!;
+            super.register( ...observers );
+        }
+        else
+        {
+            const newObservers = observers.filter( observer => !_observers.has( observer ) );
 
-            for ( let upzerver of freshly )
+            for ( let observer of newObservers )
             {
-                upzerver( ...<VV>values );
+                observer( ...values );
             }
         }
 
@@ -175,13 +236,15 @@ export class StageObservable<VV extends any[] = []> extends Observable<VV>
 
 /**
  *
- * Signature of functions that observes changes over an Observable
+ * ObserverLike
+ *
+ * This interface describe the signature of a callback to be executed by an observable when notified of value change.
+ *
+ * @since Jan 1, 2019
+ * @author Salathiel Genese <salathielgenese@gmail.com>
  *
  */
-export interface ObserverLike<VV extends any[]>
+export interface ObserverLike<VV extends any[] = any[]>
 {
     ( ...values: VV ): any;
 }
-
-const stages = new WeakMap<StageObservable<any[]>, any[]>();
-const observables = new WeakMap<Observable<any[]>, Set<ObserverLike<any[]>>>();

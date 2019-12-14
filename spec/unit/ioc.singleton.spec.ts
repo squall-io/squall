@@ -1,610 +1,218 @@
-import { Singleton, singletonObservable } from '../../src/ioc';
+import { Singleton } from '../../src/ioc';
 
 
 
-describe( '@Singleton', () =>
+describe( '@Singleton( true )', () =>
 {
 
-    describe( '()', () =>
+    it( 'does not throw on first class instantiation', () =>
+    {
+        @Singleton( true ) class StandardInput {}
+
+        expect( () => new StandardInput() ).not.toThrow();
+    });
+
+    it( 'does not throw on subclass instantiation', () =>
+    {
+        @Singleton( true ) class StandardInput {}
+        class stdin extends StandardInput {}
+
+
+        expect( () => new stdin() ).not.toThrow();
+    });
+
+    it( 'does not throw on subclass subsequent instantiations', () =>
+    {
+        @Singleton( true ) class StandardInput {}
+        class stdin extends StandardInput {}
+
+        new stdin();
+
+        expect( () => new stdin() ).not.toThrow();
+        expect( () => new stdin() ).not.toThrow();
+    });
+
+    it( 'does not throw on subclass instantiations, after decorated class instantiation', () =>
+    {
+        @Singleton( true ) class StandardInput {}
+        class stdin extends StandardInput {}
+
+        new StandardInput();
+
+        expect( () => new stdin() ).not.toThrow();
+        expect( () => new stdin() ).not.toThrow();
+    });
+
+    it( 'throws on subsequent class instantiations', () =>
+    {
+        @Singleton( true ) class StandardInput {}
+
+        new StandardInput();
+
+        expect( () => new StandardInput() ).toThrow();
+        expect( () => new StandardInput() ).toThrow();
+    });
+
+    describe( 'extends @Singleton( false )', () =>
     {
 
-        it( 'restrict a single instance of the class it is applied on', () =>
+        it( 'ressort to the nearest @Singleton(...) decorated class', () =>
         {
-            @Singleton()
-            class Stdin {}
+            @Singleton( true ) class A0 {}
+            class A1 extends A0 {}
 
-            expect( () => new Stdin() ).not.toThrow();
-            expect( () => new Stdin() ).toThrow();
-        });
+            @Singleton( false ) class A2 extends A1 {}
+            class A3 extends A2 {}
 
-        it( 'restrict a single instance of the class it is applied on accounting descendent instances', () =>
-        {
-            @Singleton()
-            class Stdin {}
-            class SshStdin extends Stdin {};
+            expect( () => new A0() ).not.toThrow();
+            expect( () => new A0() ).toThrow();
+            expect( () => new A1() ).not.toThrow();
+            expect( () => new A1() ).not.toThrow();
 
-            expect( () => new Stdin() ).not.toThrow();
-            expect( () => new SshStdin() ).toThrow();
+            expect( () => new A2() ).not.toThrow();
+            expect( () => new A2() ).toThrow();
+            expect( () => new A3() ).toThrow();
+            expect( () => new A3() ).toThrow();
         });
 
     });
 
-    describe( '( true )', () =>
+    describe( 'extends @Singleton( true )', () =>
     {
 
-        it( 'restrict a single instance of the class it is applied on', () =>
+        it( 'ressort to the nearest @Singleton(...) decorated class', () =>
         {
-            @Singleton( false )
-            class Stdin {}
+            @Singleton( true ) class A0 {}
+            class A1 extends A0 {}
 
-            expect( () => new Stdin() ).not.toThrow();
-            expect( () => new Stdin() ).toThrow();
-        });
+            @Singleton( true ) class A2 extends A1 {}
+            class A3 extends A2 {}
 
-        it( 'restrict a single instance of the class it is applied on accounting descendent instances', () =>
-        {
-            @Singleton( false )
-            class Stdin {}
-            class SshStdin extends Stdin {};
+            expect( () => new A0() ).not.toThrow();
+            expect( () => new A0() ).toThrow();
+            expect( () => new A1() ).not.toThrow();
+            expect( () => new A1() ).not.toThrow();
 
-            expect( () => new Stdin() ).not.toThrow();
-            expect( () => new SshStdin() ).toThrow();
+            expect( () => new A2() ).not.toThrow();
+            expect( () => new A2() ).toThrow();
+            expect( () => new A3() ).not.toThrow();
+            expect( () => new A3() ).not.toThrow();
         });
 
     });
 
-    describe( '( false )', () =>
+});
+
+
+
+describe( '@Singleton( false )', () =>
+{
+
+    it( 'does not throw on first class instantiation', () =>
+    {
+        @Singleton( false ) class StandardOutput {}
+
+        expect( () => new StandardOutput() ).not.toThrow();
+    });
+
+    it( 'does not throw on first subclass instantiation', () =>
+    {
+        @Singleton( false ) class StandardOutput {}
+        class Display extends StandardOutput {}
+
+        expect( () => new Display() ).not.toThrow();
+    });
+
+    it( 'throws on subsequent class instantiations', () =>
+    {
+        @Singleton( false ) class StandardOutput {}
+
+        new StandardOutput();
+
+        expect( () => new StandardOutput() ).toThrow();
+        expect( () => new StandardOutput() ).toThrow();
+    });
+
+    it( 'throws on subclass subsequent instantiations', () =>
+    {
+        @Singleton( false ) class StandardOutput {}
+        class Display extends StandardOutput {}
+
+
+        new Display();
+
+        expect( () => new Display() ).toThrow();
+        expect( () => new Display() ).toThrow();
+    });
+
+    it( 'throws on subclass instantiations, after decorated class instantiation', () =>
+    {
+        @Singleton( false ) class StandardOutput {}
+        class Display extends StandardOutput {}
+
+
+        new StandardOutput();
+
+        expect( () => new Display() ).toThrow();
+        expect( () => new Display() ).toThrow();
+    });
+
+    it( 'throws on decorated class instantiations, after subclass instantiation', () =>
+    {
+        @Singleton( false ) class StandardOutput {}
+        class Display extends StandardOutput {}
+
+
+        new Display();
+
+        expect( () => new StandardOutput() ).toThrow();
+        expect( () => new StandardOutput() ).toThrow();
+    });
+
+    describe( 'extends @Singleton( false )', () =>
     {
 
-        it( 'restrict a single instance of the class it is applied on', () =>
+        it( 'ressort to the nearest @Singleton(...) decorated class', () =>
         {
-            @Singleton( false )
-            class Stdin {}
+            @Singleton( false ) class A0 {}
+            class A1 extends A0 {}
 
-            expect( () => new Stdin() ).not.toThrow();
-            expect( () => new Stdin() ).toThrow();
-        });
+            @Singleton( false ) class A2 extends A1 {}
+            class A3 extends A2 {}
 
-        it( 'restrict a single instance of the class it is applied on accounting descendent instances', () =>
-        {
-            @Singleton( false )
-            class Stdin {}
-            class SshStdin extends Stdin {};
+            expect( () => new A0() ).not.toThrow();
+            expect( () => new A0() ).toThrow();
+            expect( () => new A1() ).toThrow();
+            expect( () => new A1() ).toThrow();
 
-            expect( () => new Stdin() ).not.toThrow();
-            expect( () => new SshStdin() ).toThrow();
+            expect( () => new A2() ).not.toThrow();
+            expect( () => new A2() ).toThrow();
+            expect( () => new A3() ).toThrow();
+            expect( () => new A3() ).toThrow();
         });
 
     });
 
-    describe( 'multi-level singleton', () =>
+    describe( 'extends @Singleton( true )', () =>
     {
 
-        describe( '()', () =>
+        it( 'ressort to the nearest @Singleton(...) decorated class', () =>
         {
-
-            describe( '> ()', () =>
-            {
-
-                it( 'throws no error', () =>
-                {
-                    @Singleton() class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton()
-                        class A1 extends A {}
-
-                        A1;
-                    }).not.toThrow();
-                });
-
-                it( 'relates child instance to child constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton() class A1 extends A {};
-
-                    const instance = new A1();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A1, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A1 );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates child instance not to parent constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton() class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A1();
-                    singletonObservable.register( A, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-                it( 'relates parent instance to parent constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton() class A1 extends A {};
-
-                    A1;
-                    const instance = new A();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates parent instance not to child constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton() class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A();
-                    singletonObservable.register( A1, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-            });
-
-            describe( '> ( false )', () =>
-            {
-
-                it( 'throw no error', () =>
-                {
-                    @Singleton() class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton( false ) class A1 extends A {}
-
-                        A1;
-                    }).not.toThrow();
-                });
-
-                it( 'relates child instance to child constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    const instance = new A1();
-                    instance;
-
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A1, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A1 );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates child instance not to parent constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A1();
-                    singletonObservable.register( A, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-                it( 'relates parent instance to parent constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    A1;
-                    const instance = new A();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates parent instance not to child constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A();
-                    singletonObservable.register( A1, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-            });
-
-            describe( '> ( true )', () =>
-            {
-
-                it( 'throws no error', () =>
-                {
-                    @Singleton() class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton( true ) class A1 extends A {}
-
-                        A1;
-                    }).not.toThrow();
-                });
-
-                it( 'relates child instance to child constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    const instance = new A1();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A1, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A1 );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates child instance not to parent constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A1();
-                    singletonObservable.register( A, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-                it( 'relates parent instance to parent constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    A1;
-                    const instance = new A();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates parent instance not to child constructor', () =>
-                {
-                    @Singleton() class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A();
-                    singletonObservable.register( A1, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-            });
-
-        });
-
-        describe( '( true )', () =>
-        {
-
-            describe( '> ()', () =>
-            {
-
-                it( 'throws an error', () =>
-                {
-                    @Singleton( true ) class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton()
-                        class A1 extends A {}
-
-                        A1;
-                    }).toThrow();
-                });
-
-            });
-
-            describe( '> ( false )', () =>
-            {
-
-                it( 'throws an error', () =>
-                {
-                    @Singleton( true ) class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton( false ) class A1 extends A {}
-
-                        A1;
-                    }).toThrow();
-                });
-
-            });
-
-            describe( '> ( true )', () =>
-            {
-
-                it( 'throws an error', () =>
-                {
-                    @Singleton( true ) class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton( true ) class A1 extends A {}
-
-                        A1;
-                    }).toThrow();
-                });
-
-            });
-
-        });
-
-        describe( '( false )', () =>
-        {
-
-            describe( '> ()', () =>
-            {
-
-                it( 'throws no error', () =>
-                {
-                    @Singleton( false ) class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton()
-                        class A1 extends A {}
-
-                        A1;
-                    }).not.toThrow();
-                });
-
-                it( 'relates child instance to child constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton() class A1 extends A {};
-
-                    const instance = new A1();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A1, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A1 );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates child instance not to parent constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton() class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A1();
-                    singletonObservable.register( A, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-                it( 'relates parent instance to parent constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton() class A1 extends A {};
-
-                    A1;
-                    const instance = new A();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates parent instance not to child constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton() class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A();
-                    singletonObservable.register( A1, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-            });
-
-            describe( '> ( false )', () =>
-            {
-
-                it( 'throws no error', () =>
-                {
-                    @Singleton( false ) class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton( false ) class A1 extends A {}
-
-                        A1;
-                    }).not.toThrow();
-                });
-
-                it( 'relates child instance to child constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    const instance = new A1();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A1, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A1 );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates child instance not to parent constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A1();
-                    singletonObservable.register( A, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-                it( 'relates parent instance to parent constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    A1;
-                    const instance = new A();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates parent instance not to child constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( false ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A();
-                    singletonObservable.register( A1, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-            });
-
-            describe( '> ( true )', () =>
-            {
-
-                it( 'throws no error', () =>
-                {
-                    @Singleton( false ) class A {}
-
-                    expect( () =>
-                    {
-                        @Singleton( true ) class A1 extends A {}
-
-                        A1;
-                    }).not.toThrow();
-                });
-
-                it( 'relates child instance to child constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    const instance = new A1();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A1, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A1 );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates child instance not to parent constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A1();
-                    singletonObservable.register( A, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-                it( 'relates parent instance to parent constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    A1;
-                    const instance = new A();
-                    const spy = jasmine.createSpy();
-
-                    singletonObservable.register( A, spy );
-
-                    const arg0 = spy.calls.first().args[0];
-
-                    expect( arg0.constructor ).toBe( A );
-                    expect( arg0.instance ).toBe( instance );
-                });
-
-                it( 'relates parent instance not to child constructor', () =>
-                {
-                    @Singleton( false ) class A {}
-                    @Singleton( true ) class A1 extends A {};
-
-                    const spy = jasmine.createSpy();
-
-                    new A();
-                    singletonObservable.register( A1, spy );
-
-                    expect( spy ).not.toHaveBeenCalled();
-                });
-
-            });
-
+            @Singleton( false ) class A0 {}
+            class A1 extends A0 {}
+
+            @Singleton( true ) class A2 extends A1 {}
+            class A3 extends A2 {}
+
+            expect( () => new A0() ).not.toThrow();
+            expect( () => new A0() ).toThrow();
+            expect( () => new A1() ).toThrow();
+            expect( () => new A1() ).toThrow();
+
+            expect( () => new A2() ).not.toThrow();
+            expect( () => new A2() ).toThrow();
+            expect( () => new A3() ).not.toThrow();
+            expect( () => new A3() ).not.toThrow();
         });
 
     });

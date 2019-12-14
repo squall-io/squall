@@ -1,104 +1,90 @@
 /**
  *
- * Emitter class is at the root of the Event API.
+ * Emitter
  *
- * As it is, it stands as the corridor between the
- * source of an event (the code that create and/or
- * access an Emitter) and its events' targets (the
- * ListenerLike callback).
+ * Instances of this class emits events to be listerned to by registration of event listeners.
+ *
+ * @since Jan 1, 2019
+ * @author Salathiel Genese <salathielgenese@gmail.com>
+ *
  *
  */
-export class Emitter<NN extends string>
+export class Emitter<EL extends Emitter.EventParametersLike = Emitter.EventParametersLike>
 {
-    public constructor()
-    {
-        emitters.set( this, new Map() );
-        listenersCountDown.set( this, new Map() );
-    }
+
+    private readonly listeners = new Map<string, Map<ListenerLike<string, any[]>, number>>();
 
     /**
      *
-     * Triggers an event.
+     * Triggers an event by its name
      *
-     * > This method will call/execute all registered listeners for this event.
+     * This method will call/execute all registered listeners for this event.
+     * Well, all listeners except if some listeners call event.stopPropagation().
      *
-     * @param event Event name
+     * @param name Event name
      * @param parameters Listeners' parameters
      *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
+     *
      */
-    public trigger<N extends NN>(event: N, ...parameters: any[]): Event<N, this>
+    public trigger<N extends Extract<keyof EL, string>, PP extends EL[N]>( name: N, ...parameters: PP ): Event<N, this>
     {
-        let listener;
-        let countDown: number | void;
-        const EVENT = new Event( event, this );
-        const _eventsCountDownMap = listenersCountDown.get( this )!;
-        const _listeners = emitters.get( this )!.get( event ) || <Set<ListenerLike<string>>>voidSet;
-        const _listenersIterator: IterableIterator<ListenerLike<string, [], Emitter<string>>> = _listeners.values();
-        const _listenersCountDown = _eventsCountDownMap.has( event ) ? _eventsCountDownMap.get( event )! : <WeakMap<ListenerLike<string>, number>>voidWeakMap;
+        const event = new Event( name, this );
+        const container = this.listeners.get( name );
 
-        while( !EVENT.isPropagationStopped && ( listener = _listenersIterator.next().value ) )
+        for ( const listener of container?.keys() ?? [] )
         {
-            listener( EVENT, ...<[]>parameters );
-            countDown = _listenersCountDown.get( listener );
+            listener( event, ...parameters );
+            container?.set( listener, container?.get( listener )! - 1 );
+            container?.get( listener ) || container?.delete( listener );
 
-            if ( void 0 !== countDown )
+            if ( event.isPropagationStopped )
             {
-                _listenersCountDown.set( listener, --countDown );
-
-                if ( !countDown )
-                {
-                    _listeners.delete( listener );
-                    _listenersCountDown.delete( listener );
-                }
+                break;
             }
         }
 
-        return EVENT;
+        0 === container?.size && this.listeners.delete( name );
+
+        return event;
     }
 
     /**
      *
-     * Registers listeners under supplied event.
+     * Registers listeners under supplied event's name.
      *
-     * @param event Event name
+     * No listener is registered twice under the same event's name.
+     * Is an any time a listener is re-registered, its `times` countdown will
+     * be overrode by the new value as if it was registered the for the first time.
+     *
+     * @param name Event name
      * @param times Number of callbacks notifications before removal
      * @param listeners Event listeners to register for the supplied event
      *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
+     *
      */
-    public on<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this;
-    public on<N extends NN>(event: N, times: number, ...listeners: ListenerLike<N, any[], this>[]): this;
-    public on<N extends NN>(event: N, times: number | ListenerLike<N, any[], this>, ...listeners: ListenerLike<N, any[], this>[]): this
+    public on<N extends Extract<keyof EL, string>, PP extends EL[N], L extends ListenerLike<N, PP, this>>( name: N, ...listeners: L[] ): this;
+    public on<N extends Extract<keyof EL, string>, PP extends EL[N], L extends ListenerLike<N, PP, this>>( name: N, times: number, ...listeners: L[] ): this;
+    public on<N extends Extract<keyof EL, string>, PP extends EL[N], L extends ListenerLike<N, PP, this>>( name: N, times: number | L, ...listeners: L[] ): this
     {
-        const _listenersMap = emitters.get( this )!;
-        times instanceof Function
-            ? listeners.unshift( times ) && ( times = -1 )
-            : isNaN( +times ) ? ( times = -1 ) : ( times = +times - +times % 1);
-        const _listeners = ( _listenersMap.has( event ) ? _listenersMap : _listenersMap.set( event, new Set() ) ).get( event )!;
+        const IS_TIMES_A_FUNTION = 'function' === typeof times;
 
-        if ( times <= 0 )
+        IS_TIMES_A_FUNTION && listeners.unshift( times as L );
+
+        if ( IS_TIMES_A_FUNTION || 0 > times )
         {
-            for ( let listener of listeners )
-            {
-                _listeners.add( <ListenerLike<string>> ( <unknown> listener ) );
-            }
-        }
-        else
-        {
-            let countDownCounter = 0;
-            const _listenersCountDownMap = listenersCountDown.get( this )!;
-            const _listenersCountDown = _listenersCountDownMap.has( event ) ? _listenersCountDownMap.get( event )! : new WeakMap();
-
-            for ( let listener of listeners )
-            {
-                _listeners.has( <ListenerLike<string>>( <unknown>listener ) )
-                    || ++countDownCounter && _listenersCountDown.set( <ListenerLike<string>>( <unknown>listener ), +times );
-                _listeners.add( <ListenerLike<string>> ( <unknown> listener ) );
-            }
-
-            countDownCounter && !_listenersCountDownMap.has( event ) && _listenersCountDownMap.set( event, _listenersCountDown );
+            times = Number.POSITIVE_INFINITY;
         }
 
-        _listeners.size && !_listenersMap.has( event ) && _listenersMap.set( event, _listeners );
+        const container = this.listeners.get( name ) ?? this.listeners.set( name, new Map() ).get( name )!;
+
+        for ( let listener of new Set( listeners ) )
+        {
+            container.set( <any>listener, <number>times );
+        }
 
         return this;
     }
@@ -107,129 +93,141 @@ export class Emitter<NN extends string>
      *
      * Unregisters listeners for the given event.
      *
-     * > - if a listener was not registered, nothing relevant happen of him;
-     * > - if no listener is supplied, nothing happen.
+     * NOTE:
+     *  - if a listener was not registered, nothing relevant happen of him
+     *  - if no listener is supplied, nothing happens.
      *
-     * @param event Event name
+     * @param name Event name
      * @param listeners Event listeners to unregister
      *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
+     *
      */
-    public off<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): this
+    public off<N extends Extract<keyof EL, string>, PP extends EL[N], L extends ListenerLike<N, PP, this>>(name: N, ...listeners: L[]): this
     {
-        const map = emitters.get( this )!;
-        const _listeners = map.get( event );
+        const container = this.listeners.get( name );
 
-        if ( _listeners )
+        for ( let listener of new Set( listeners ) )
         {
-            for ( let listener of listeners )
-            {
-                _listeners.delete( <ListenerLike<string>> ( <unknown> listener ) );
-            }
+            container?.delete( <any>listener );
         }
+
+        0 === container?.size && this.listeners.delete( name );
 
         return this;
     }
 
     /**
      *
-     * Returns a boolean indicating if all given listeners
-     * are registered on this emitter for the provided event.
+     * Returns boolean indicating weither listeners are registered under the given event's name.
      *
-     * > If no listener is provided, the returned boolean indicates
-     *   that at least one listener is registered for the given event.
+     * Returns :
+     *  - true : if all listeners are registered under the event's name
+     *           OR no listener is provided but the emitter still have some listeners registered under this event's name.
+     *  - false : if any of the listeners is registered under the event's name
+     *            OR no listener is provided and the emitter has no listener registered under this event's name.
      *
-     * @param event Event name
+     * @param name Event name
      * @param listeners Event listeners to check for registered state
      *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
+     *
      */
-    public has<N extends NN>(event: N, ...listeners: ListenerLike<N, any[], this>[]): boolean
+    public has<N extends Extract<keyof EL, string>, PP extends EL[N], L extends ListenerLike<N, PP, this>>(name: N, ...listeners: L[]): boolean
     {
-        const _listeners = emitters.get( this )!.get( event );
+        const container = this.listeners.get( name );
 
-        return !!_listeners && !!_listeners.size && listeners.every( listener =>
-            _listeners.has( <ListenerLike<string>> ( <unknown> listener ) ) );
+        if ( !listeners.length )
+        {
+            return !!container?.size;
+        }
+
+        for ( let listener of new Set( listeners ) )
+        {
+            if ( !container?.has( <any>listener ) )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
+}
+
+export module Emitter
+{
+    export type EventParametersLike = { [name: string]: any[] };
 }
 
 /**
  *
- * Event class is a shell-like used to drive event communication model.
+ * Enent
+ *
+ * Instances of this class represent the occurrence of something.
+ *
+ * @since Jan 1, 2019
+ * @author Salathiel Genese <salathielgenese@gmail.com>
  *
  */
-export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
+export class Event<N extends string = string, E extends Emitter = Emitter>
 {
-    public constructor(name: N, emitter: E)
-    {
-        events.set( this, {
-            name,
-            emitter,
-            timestamp: Date.now(),
-            isDefaultPrevented: false,
-            isPropagationStopped: false,
-        });
-    }
 
     /**
      *
      * Holds the immutable name of the event as it was triggered.
      *
      */
-    public get name(): N
-    {
-        return <N>events.get( this )!.name;
-    }
+    public readonly name: N;
 
     /**
      *
      * Holds the immutable emmitter which triggered the event.
      *
      */
-    public get emitter(): E
-    {
-        return <E>events.get( this )!.emitter;
-    }
+    public readonly emitter: E;
 
     /**
      *
      * Holds the immutable timestamp at which the event was instantiated.
      *
      */
-    public get timestamp(): number
-    {
-        return events.get( this )!.timestamp;
-    }
-
+    public readonly timestamp = Date.now();
     /**
      *
      * Holds the default prevented state of the event.
      *
      */
-    public get isDefaultPrevented(): boolean
-    {
-        return events.get( this )!.isDefaultPrevented;
-    }
-
+    public readonly isDefaultPrevented = false;
     /**
      *
      * Holds the propagationStopped state of the event.
      *
      */
-    public get isPropagationStopped(): boolean
+    public readonly isPropagationStopped = false;
+
+    public constructor(name: N, emitter: E)
     {
-        return events.get( this )!.isPropagationStopped;
+        this.emitter = emitter;
+        this.name = name;
     }
 
     /**
      *
-     * Marks an event as to prevent default behaviour.
+     * Marks an event to prevent its default behaviour.
      *
-     * > It is up to the developer to actually
-     *   check and prevent the "default" behaviour.
+     * NOTE: It is actually up to the developper to prevent
+     *       default behaviour executions when the event is
+     *       triggered by the emitter.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
      *
      */
     public preventDefault(): this
     {
-        events.get( this )!.isDefaultPrevented = true;
+        (<any>this).isDefaultPrevented = true;
 
         return this;
     }
@@ -238,10 +236,15 @@ export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
      *
      * Marks an event as to stop its propagation through registered listeners.
      *
+     * This has the effect of not call/execute registered event that haven't been called already.
+     *
+     * @since Jan 1, 2019
+     * @author Salathiel Genese <salathielgenese@gmail.com>
+     *
      */
     public stopPropagation(): this
     {
-        events.get( this )!.isPropagationStopped = true;
+        (<any>this).isPropagationStopped = true;
 
         return this;
     }
@@ -249,21 +252,15 @@ export class Event<N extends string, E extends Emitter<N> = Emitter<N>>
 
 /**
  *
- * Event listener interface.
+ * ListenerLike
  *
- * Callbacks with this signature are used to
- * listen events triggered by an event Emitter.
+ * This interface describe the signature of a callback to be executed by event emitter when a event occur.
+ *
+ * @since Jan 1, 2019
+ * @author Salathiel Genese <salathielgenese@gmail.com>
  *
  */
-export interface ListenerLike<N extends string, PP extends any[] = [], E extends Emitter<N> = Emitter<N>>
+export interface ListenerLike<N extends string = string, PP extends any[] = any[], E extends Emitter = Emitter>
 {
     (event: Event<N, E>, ...parameters: PP): any;
 }
-
-const voidSet = new Set();
-const voidWeakMap = new WeakMap();
-const emitters = new WeakMap<Emitter<string>, Map<string, Set<ListenerLike<string>>>>();
-const listenersCountDown = new WeakMap<Emitter<string>, Map<string, WeakMap<ListenerLike<string>, number>>>();
-
-type EventAttribute = Exclude<keyof Event<string>, 'preventDefault' | 'stopPropagation'>;
-const events = new WeakMap<Event<string>, { [ key in EventAttribute ]: Event<string>[key] }>();

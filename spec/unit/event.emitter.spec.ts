@@ -1,4 +1,4 @@
-import { Emitter, Event, ListenerLike } from "../../src/event";
+import { Emitter, Event } from "../../src/event";
 import { v4 as uuid } from 'uuid';
 
 
@@ -6,327 +6,311 @@ import { v4 as uuid } from 'uuid';
 describe( 'Emitter', () =>
 {
 
-    describe(' #trigger()', () =>
+    describe( '#on(...)', () =>
     {
 
-        describe( 'returns an Event', () =>
+        it( 'register event listeners under event\'s name', () =>
         {
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener_0, listener_1 );
 
-            it( 'instance', () =>
-            {
-                const event = new Emitter().trigger( uuid() );
-
-                expect( event instanceof Event ).toBe( true );
-            });
-
-            it( 'in which .name matches #trigger() "event" parameter', () =>
-            {
-                const name: string = uuid();
-                const emitter = new Emitter();
-                const event = emitter.trigger( name );
-
-                expect( event.name ).toBe( name );
-            });
-
-            it( 'in which .emitter matches the #trigger() parent emitter object', () =>
-            {
-                const emitter = new Emitter();
-                const event = emitter.trigger( uuid() );
-
-                expect( event.emitter ).toBe( emitter );
-            });
-
-            it( 'in which .timestamp matches the timestamp at which #trigger() was called', () =>
-            {
-                const emitter = new Emitter();
-                const before = Date.now();
-                const event = emitter.trigger( uuid() );
-                const after = Date.now();
-
-                expect( event.timestamp ).toBeLessThanOrEqual( after );
-                expect( event.timestamp ).toBeGreaterThanOrEqual( before );
-            });
-
+            expect( emitter.has( name, listener_0, listener_1 ) ).toBe( true );
         });
 
-        it( 'calls distinct set of listeners per "event"', () =>
+        it( 'register event listeners under event\'s name with trigger countdow - `times`', () =>
         {
-            const emitter = new Emitter();
-            const name_01: string = uuid();
-            const name_02: string = uuid();
-            const listener_01_01 = jasmine.createSpy();
-            const listener_01_02 = jasmine.createSpy();
-            const listener_02_01 = jasmine.createSpy();
-            const listener_02_02 = jasmine.createSpy();
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener_0 ).on( name, 1, listener_1 );
 
-            emitter.on( name_01, listener_01_01, listener_01_02 );
-            emitter.on( name_02, listener_02_01, listener_02_02 );
+            expect( listener_0 ).toHaveBeenCalledTimes( 0 );
+            expect( listener_1 ).toHaveBeenCalledTimes( 0 );
+            expect( emitter.has( name, listener_0, listener_1 ) ).toBe( true );
 
-            emitter.trigger( name_01 );
-
-            expect( listener_01_01 ).toHaveBeenCalled();
-            expect( listener_01_02 ).toHaveBeenCalled();
-            expect( listener_02_01 ).not.toHaveBeenCalled();
-            expect( listener_02_02 ).not.toHaveBeenCalled();
-
-            for( let spy of [listener_01_01, listener_01_02, listener_02_01, listener_02_02] )
-            {
-                spy.calls.reset();
-            }
-
-            emitter.trigger( name_02 );
-
-            expect( listener_01_01 ).not.toHaveBeenCalled();
-            expect( listener_01_02 ).not.toHaveBeenCalled();
-            expect( listener_02_01 ).toHaveBeenCalled();
-            expect( listener_02_02 ).toHaveBeenCalled();
-        });
-
-        it( 'calls all the registered "event" listeners once each', () =>
-        {
-            const name: string = uuid();
-            const emitter = new Emitter();
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
-
-            emitter.on( name, listener_01, listener_02 );
             emitter.trigger( name );
 
-            expect( listener_01 ).toHaveBeenCalledTimes( 1 );
-            expect( listener_02 ).toHaveBeenCalledTimes( 1 );
+            expect( listener_0 ).toHaveBeenCalledTimes( 1 );
+            expect( listener_1 ).toHaveBeenCalledTimes( 1 );
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
+
+            emitter.trigger( name );
+
+            expect( listener_0 ).toHaveBeenCalledTimes( 2 );
+            expect( listener_1 ).toHaveBeenCalledTimes( 1 );
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
         });
 
-        it( 'calls all the "event" registered listeners with the same "event" object', () =>
+        it( 'register not event listener more than once under the same event\'s name', () =>
         {
-            const name: string = uuid();
+            const name = uuid();
+            const listener = jasmine.createSpy();
+
+            new Emitter().on( name, listener, listener ).on( name, listener ).trigger( name );
+
+            expect( listener ).toHaveBeenCalledTimes( 1 );
+        });
+
+        it( 'register event listener multiple times unders same event\'s name but different `times` countdown will override previous definition', () =>
+        {
+            const name = uuid();
+            const listener = jasmine.createSpy();
+            const emitter = new Emitter().on( name, 2, listener );
+
+            emitter.trigger( name );
+            emitter.on( name, 3, listener );
+            emitter.trigger( name );
+            emitter.trigger( name );
+            emitter.trigger( name );
+            emitter.trigger( name );
+
+            expect( listener ).toHaveBeenCalledTimes( 4 );
+        });
+
+    });
+
+    describe( '#has(...)', () =>
+    {
+
+        it( 'returns true if listener is regitered for event\'s name', () =>
+        {
+            const name = uuid();
+            const listener = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener );
+
+            expect( emitter.has( name, listener ) ).toBe( true );
+        });
+
+        it( 'returns true if all listeners are regitered for event\'s name', () =>
+        {
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener_0, listener_1 );
+
+            expect( emitter.has( name, listener_0, listener_1 ) ).toBe( true );
+        });
+
+        it( 'returns true if no listener is given but some listeners are registered for event\'s name', () =>
+        {
+            const name = uuid();
+            const listener = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener );
+
+            expect( emitter.has( name ) ).toBe( true );
+        });
+
+        it( 'returns false if listener is not regitered for event\'s name', () =>
+        {
+            const name = uuid();
             const emitter = new Emitter();
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
+            const listener = jasmine.createSpy();
 
-            emitter.on( name, listener_01, listener_02 );
+            expect( emitter.has( name, listener ) ).toBe( false );
+        });
 
+        it( 'returns false if any of the listeners is not regitered for event\'s name', () =>
+        {
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener_0 );
+
+            expect( emitter.has( name, listener_0, listener_1 ) ).toBe( false );
+        });
+
+        it( 'returns false if no listener is given and no listener is registered for event\'s name', () =>
+        {
+            const name = uuid();
+            const emitter = new Emitter();
+
+            expect( emitter.has( name ) ).toBe( false );
+        });
+
+    });
+
+    describe( '#off(...)', () =>
+    {
+
+        it( 'removes event listeners, for those registered', () =>
+        {
+            const name = uuid();
+            const listener = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener );
+
+            expect( emitter.has( name, listener ) ).toBe( true );
+
+            emitter.off( name, listener );
+
+            expect( emitter.has( name, listener ) ).toBe( false );
+        });
+
+        it( 'removes event listeners, for those registered but is silent otherwise', () =>
+        {
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener_0 );
+
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
+
+            emitter.off( name, listener_0, listener_1 );
+
+            expect( emitter.has( name, listener_0 ) ).toBe( false );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
+        });
+
+    });
+
+    describe( '#trigger(...)', () =>
+    {
+
+        it( 'returns an Event', () =>
+        {
+            const name = uuid();
+            const event = new Emitter().trigger( name );
+
+            expect( event instanceof Event ).toBe( true );
+        });
+
+        it( 'returns an Event with matching event\'s name', () =>
+        {
+            const name = uuid();
+            const event = new Emitter().trigger( name );
+
+            expect( event.name ).toBe( name );
+        });
+
+        it( 'returns an Event with matching event\'s Emitter', () =>
+        {
+            const name = uuid();
+            const emitter = new Emitter();
             const event = emitter.trigger( name );
 
-            expect( listener_01 ).toHaveBeenCalledWith( event );
-            expect( listener_02 ).toHaveBeenCalledWith( event );
+            expect( event.emitter ).toBe( emitter );
         });
 
-        it( 'calls all the "event" registered listeners with the provided "parameters"', () =>
-        {
-            const name: string = uuid();
-            const emitter = new Emitter();
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
-            const parameters = [ uuid(), uuid(), uuid(), uuid() ];
-
-            emitter.on( name, listener_01, listener_02 );
-
-            const event = emitter.trigger( name, ...parameters );
-
-            expect( listener_01 ).toHaveBeenCalledWith( ...[ event, ...parameters ] );
-            expect( listener_02 ).toHaveBeenCalledWith( ...[ event, ...parameters ] );
-        });
-
-        it( 'calls all the "event" registered listeners in the order they were registered', () =>
-        {
-            const name: string = uuid();
-            const emitter = new Emitter();
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
-            const listener_03 = jasmine.createSpy();
-
-            emitter.on( name, listener_01, listener_02, listener_03 );
-            emitter.trigger( name );
-
-            expect( listener_01 ).toHaveBeenCalledBefore( listener_02);
-            expect( listener_02 ).toHaveBeenCalledBefore( listener_03);
-            expect( listener_03 ).toHaveBeenCalled();
-        });
-
-        it( 'calls the "event" registered listeners until "event.stopPropagation() is called"', () =>
-        {
-            const name: string = uuid();
-            const emitter = new Emitter();
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
-            const listener_03 = jasmine.createSpy( void 0, ( event: Event<string> ) => {
-                event.stopPropagation();
-            }).and.callThrough();
-            const listener_04 = jasmine.createSpy();
-            const listener_05 = jasmine.createSpy();
-
-            emitter.on( name, listener_01, listener_02, listener_03, listener_04, listener_05 );
-            emitter.trigger( name );
-
-            expect( listener_01 ).toHaveBeenCalled();
-            expect( listener_02 ).toHaveBeenCalled();
-            expect( listener_03 ).toHaveBeenCalled();
-            expect( listener_04 ).not.toHaveBeenCalled();
-            expect( listener_05 ).not.toHaveBeenCalled();
-        });
-
-        it( 'unregisters registered listeners when after they have been called "times" (as given at Emitter#on() )', () =>
+        it( 'returns an Event with isDefaultPrevented false', () =>
         {
             const name = uuid();
-            const emitter = new Emitter();
-            const times = 2 + Date.now() % 8;
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
+            const event = new Emitter().trigger( name );
 
-            emitter.on( name, times, listener_01, listener_02 );
-
-            for ( let i = 0; i < times; i++ )
-            {
-                emitter.trigger( name );
-            }
-
-            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_01 ) ).toBe( false );
-            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_02 ) ).toBe( false );
+            expect( event.isDefaultPrevented ).toBe( false );
         });
 
-        it( 'unregisters NOT registered listeners before they have been called "times" (as given at Emitter#on() )', () =>
+        it( 'returns an Event with isPropagationStopped false', () =>
         {
             const name = uuid();
-            const emitter = new Emitter();
-            const times = 2 + Date.now() % 8;
-            const listener_01 = jasmine.createSpy();
-            const listener_02 = jasmine.createSpy();
+            const event = new Emitter().trigger( name );
 
-            emitter.on( name, times, listener_01, listener_02 );
-
-            for ( let i = 0; i < times-1; i++ )
-            {
-                emitter.trigger( name );
-            }
-
-            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_01 ) ).toBe( true );
-            expect( emitter.has( name, <ListenerLike<string, any[]>>listener_02 ) ).toBe( true );
+            expect( event.isPropagationStopped ).toBe( false );
         });
 
-    });
-
-    describe(' #on()', () =>
-    {
-
-        it( 'returns parent emitter object', () =>
+        it( 'returns an Event with timestamp of event\'s triggered time', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const emitter = new Emitter();
-            const returned = emitter.on( name, listener_01 );
+            const name = uuid();
+            const now = Date.now();
+            const event = new Emitter().trigger( name );
 
-            expect( returned ).toBe( emitter );
+            expect( event.timestamp ).toBeGreaterThanOrEqual( now );
+            expect( event.timestamp ).toBeLessThanOrEqual( now + 10 );
         });
 
-        it( 'registers, for the given "event", all the provided "listeners" that are yet unregistered', () =>
+        it( 'calls registered event listeners', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const listener_02 = () => {};
-            const emitter = new Emitter();
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
 
-            emitter.on( name, listener_01, listener_02 );
+            new Emitter().on( name, listener_0, listener_1 ).trigger( name );
 
-            const returned = emitter.has( name, listener_01, listener_02 );
-
-            expect( returned ).toBe( true );
+            expect( listener_0 ).toHaveBeenCalled();
+            expect( listener_1 ).toHaveBeenCalled();
         });
 
-        it( 'registers, for the given "event", all the provided "listeners" that are yet unregistered, even when trigger limit is given ("times")', () =>
+        it( 'calls registered event listeners with event and ...parameters', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const listener_02 = () => {};
-            const emitter = new Emitter();
-            const times = Date.now() % 10;
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const parameters = [ { name }, [ name ] ];
+            const event = new Emitter().on( name, listener_0, listener_1 ).trigger( name, ...parameters );
 
-            emitter.on( name, times, listener_01, listener_02 );
 
-            const returned = emitter.has( name, listener_01, listener_02 );
-
-            expect( returned ).toBe( true );
-            expect( emitter.has( name, <ListenerLike<string, any[]>>( <unknown>times ) ) ).toBe( false );
+            expect( listener_0 ).toHaveBeenCalledWith( event, ...parameters );
+            expect( listener_1 ).toHaveBeenCalledWith( event, ...parameters );
         });
 
-    });
-
-    describe(' #off()', () =>
-    {
-
-        it( 'returns parent emitter object', () =>
+        it( 'calls registered event listeners until some listener calls event.stopPropagation()', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const emitter = new Emitter();
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy().and.callFake( ( event: Event ) => event.stopPropagation() );
+            const listener_2 = jasmine.createSpy();
+            const listener_3 = jasmine.createSpy();
 
-            emitter.on( name, listener_01 );
-            const returned = emitter.off( name, listener_01 );
+            new Emitter().on( name, listener_0, listener_1, listener_2, listener_3 ).trigger( name );
 
-            expect( returned ).toBe( emitter );
+            expect( listener_0 ).toHaveBeenCalled();
+            expect( listener_1 ).toHaveBeenCalled();
+            expect( listener_2 ).not.toHaveBeenCalled();
+            expect( listener_3 ).not.toHaveBeenCalled();
         });
 
-        it( 'removes, for the given "event", those of the provided "listeners" that were registered', () =>
+        it( 'unregister event listener/s after `times` calls, if times was specified', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const emitter = new Emitter();
+            const name = uuid();
+            const listener_0 = jasmine.createSpy();
+            const listener_1 = jasmine.createSpy();
+            const listener_2 = jasmine.createSpy();
+            const emitter = new Emitter().on( name, listener_0 ).on( name, 1, listener_1 ).on( name, 2, listener_2 );
 
-            emitter.on( name, listener_01 );
-            emitter.off( name, listener_01 );
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( true );
+            expect( emitter.has( name, listener_2 ) ).toBe( true );
 
-            const returned = emitter.has( name, listener_01 );
+            emitter.trigger( name );
 
-            expect( returned ).toBe( false );
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
+            expect( emitter.has( name, listener_2 ) ).toBe( true );
+
+            emitter.trigger( name );
+
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
+            expect( emitter.has( name, listener_2 ) ).toBe( false );
+
+            emitter.trigger( name );
+
+            expect( emitter.has( name, listener_0 ) ).toBe( true );
+            expect( emitter.has( name, listener_1 ) ).toBe( false );
+            expect( emitter.has( name, listener_2 ) ).toBe( false );
+
+            expect( listener_0 ).toHaveBeenCalledTimes( 3 );
+            expect( listener_2 ).toHaveBeenCalledTimes( 2 );
+            expect( listener_1 ).toHaveBeenCalledTimes( 1 );
         });
 
-    });
-
-    describe( '#has()', () =>
-    {
-
-        it( 'returns true if all "listeners" are registered for the given "event"', () =>
+        it( 'returns an Event with isDefaultPrevented true if some listener called event.preventDefault()', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const listener_02 = () => {};
-            const emitter = new Emitter();
+            const name = uuid();
+            const event = new Emitter().on( name, event => event.preventDefault() ).trigger( name );
 
-            emitter.on( name, listener_01, listener_02 );
-
-            const returned = emitter.has( name, listener_01, listener_02 );
-
-            expect( returned ).toBe( true );
+            expect( event.isDefaultPrevented ).toBe( true );
         });
 
-        it( 'returns false if any of the "listeners" is not registered for the given "event"', () =>
+        it( 'returns an Event with isPropagationStopped true if some listener called event.stopPropagation()', () =>
         {
-            const name: string = uuid();
-            const listener_01 = () => {};
-            const listener_02 = () => {};
-            const listener_03 = () => {};
-            const emitter = new Emitter();
+            const name = uuid();
+            const event = new Emitter().on( name, event => event.stopPropagation() ).trigger( name );
 
-            emitter.on( name, listener_01, listener_02 );
-
-            const returned = emitter.has( name, listener_01, listener_02, listener_03 );
-
-            expect( returned ).toBe( false );
-        });
-
-        it( 'returns false if no "listeners" is provided and none is registered for the given "event"', () =>
-        {
-            const name: string = uuid();
-            const returned = new Emitter().has( name );
-
-            expect( returned ).toBe( false );
-        });
-
-        it( 'returns true if no "listeners" is provided but at least one is registered for the given "event"', () =>
-        {
-            const name: string = uuid();
-            const returned = new Emitter().on( name, () => {}).has( name );
-
-            expect( returned ).toBe( true );
+            expect( event.isPropagationStopped ).toBe( true );
         });
 
     });

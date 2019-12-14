@@ -1,276 +1,55 @@
-import { ObserverLike, StageObservable } from './observe';
+import { StageObservable } from "./observe";
 
 
 
 /**
  *
- * @Singleton
- * A decorator that is applied on constructors and enforces
- * singleton instance of the class it is applied on.
  *
- * @param overridable A boolean determining if `@Singleton` on descendant
- *  is allowed (`true`) or not (`false`)
  *
- * @example
- * ```
- * @Singleton() class A1 { }
- * class A1_a1 extends A1 { };
- *
- * new A1_a1(); // OK
- * new A1(); // Error: instance of A1 exists
- * new A1_a1(); // Error: instance of A1 exists
- * ```
- *
- * @example
- * ```
- * @Singleton( true ) class A1 { }
- *      class A1_b1 extends A1 { }
- * @Singleton( true ) class A1_b2 extends A1 { }
- * @Singleton( false ) class A1_b3 extends A1 { }
- *
- * new A1(); // OK
- * new A1_b1(); // Error: instance of A1 exists
- * new A1_b2(); // OK
- * new A1_b2(); // Error: instance of A1_b2 exists
- * new A1_b3(); // OK
- * new A1_b3(); // Error: instance of A1_b3 exists
- *
- * // OK
- * @Singleton() class A1_b2_c1 extends A1_b2 { }
- *
- * // Error: @Singleton is not allowed on A1_b3 subclasses
- * @Singleton() class A1_b3_c1 extends A1_b3 { }
- * ```
- *
+ * @param self Should singleton-instance check be restricted to instances of this class - true - or be widened to this class descendents - false.
+ *             Defaults to true.
  */
-export const Singleton = ( overridable = false ) =>
-    <C extends ConstructorLike, S extends SingletonConstructorLike>( target: C ): S =>
+export const Singleton = ( self = true ) =>
+{
+    return <T extends { new( ..._: any[] ): any }>( target: T ): T =>
     {
-        if ( (<S><unknown> target).overridable )
-        {
-            throw new Error( `Singleton is not applicable to class ${ target.name }` );
-        }
+        Reflect.defineProperty( target, singleton, { value: target });
 
-        const clazz: S = <S><unknown> {
+        const clazz =  {
             [ target.name ]: class extends target
             {
-                public constructor( ...parameters: any[] )
+                constructor( ...parameters: any[] )
                 {
-                    super( ...parameters );
-                    let constructor = singletonObservable.getConstructor( this )!;
+                    const SHOULD_HANDLE = ( !self || clazz === new.target ) && (<any>new.target)[ singleton ] === target;
 
-                    if ( singletonObservable.getInstance( constructor ) )
+                    if ( SHOULD_HANDLE && instances.has( target ) )
                     {
-                        throw new Error( `${ target.name } already instantiated.` );
+                        throw new Error( `Instance singleton of class '${ target.name }' already exists.` );
                     }
-                    else if ( constructor === clazz )
+
+                    super( ...parameters );
+
+                    if ( SHOULD_HANDLE )
                     {
-                        singletonObservable.notify({ constructor, instance: this });
+                        instances.set( target, this );
+                        Singleton.observables.get( target )?.notify( this );
                     }
                 }
-            }
+            },
         }[ target.name ];
 
-        singletonConstructorToStageObservableMap.set( clazz, new StageObservable() );
-        Reflect.defineProperty( clazz, 'overridable', {
-            value: overridable,
-            enumerable: false,
-            writable: false,
-        });
-        Reflect.defineProperty( clazz, singletonSymbol, {
-            enumerable: false,
-            writable: false,
-            value: true,
-        });
-
         return clazz;
-    }
-
-const singletonSymbol = Symbol();
-const baseConstructorPrototype = Reflect.getPrototypeOf( Function );
-const singletonConstructorToStageObservableMap = new WeakMap<SingletonConstructorLike, StageObservable<[ {} ]>>();
-
-export interface SingletonConstructorLike<T extends {} = {}, P extends any[] = any[]> extends ConstructorLike<T, P>
-{
-    readonly overridable: boolean;
-    readonly [ singletonSymbol ]: true;
-}
-
-/**
- *
- * A stage observable that report singleton instanciations.
- *
- * > **NOTE :** This instance constructor don't extends StageObservable, though it internally rely on it.
- *
- * Additionally, this instance provide a method to determine which singleton constructor a given instance belongs to.
- *
- */
-export const singletonObservable = ( () =>
-{
-    let instance: {} | void = void 0;
-    let observable: StageObservable<[{}]> | void = void 0;
-    const observer = ({ instance: object }: { instance: {} }) =>
-    {
-        instance = object;
     };
-
-    return new class SingletonStageObservable
-    {
-        /**
-         *
-         * Get the constructor of the given potentially singleton instance.
-         *
-         * @param instance instance to determine singleton constructor
-         *
-         */
-        public getConstructor<S extends SingletonConstructorLike>( instance: InstanceType<S> ): S | undefined
-        {
-            let constructor = <S><unknown>instance.constructor;
-
-            while ( constructor[ singletonSymbol ] &&
-                constructor !== baseConstructorPrototype &&
-                !Reflect.getOwnPropertyDescriptor(constructor, singletonSymbol) )
-            {
-                constructor = <S> Reflect.getPrototypeOf( constructor );
-            }
-
-            return constructor === baseConstructorPrototype ? void 0 : constructor;
-        }
-
-        /**
-         *
-         * Get unique instance of the given constructor, if available.
-         * Return `void` otherwise.
-         *
-         * @param constructor singleton constructor to get unique instance of
-         *
-         */
-        public getInstance<C extends ConstructorLike>( constructor: C ): InstanceType<C> | void
-        {
-            instance = void 0;
-            singletonConstructorToStageObservableMap.has( <SingletonConstructorLike><unknown> constructor ) &&
-                this.register( constructor, observer ).unregister( constructor, observer );
-
-            return instance;
-        }
-
-        /**
-         *
-         * Calls/Executes the registered observers with a constructor and its singleton
-         * as soon as possible
-         *
-         * > **NOTE :** This method, though public is intented to be called EXCLUSIVELY
-         * > by internal API logic and not tier code.
-         *
-         * @param param0 an object map of a singleton contructor and its instance.
-         *
-         */
-        public notify<S extends SingletonConstructorLike>({ constructor, instance }: { constructor: S, instance: InstanceType<S> }): this
-        {
-            observable = singletonConstructorToStageObservableMap.get( constructor );
-            observable && observable.notify({ constructor, instance });
-
-            return this;
-        }
-
-        /**
-         *
-         * Registers observers to watch for singleton constructor instantiation.
-         *
-         * @param constructor singleton constructor to watch instantiation
-         * @param observers obervers to be called at instantiation OR right away if an instance exists already
-         *
-         */
-        public register<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
-        {
-            observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
-            observable && observable.register( ...<ObserverLike<[{}]>[]>observers );
-
-            return this;
-        }
-
-        /**
-         *
-         * Unregisters observers for a given singleton constructor
-         *
-         * @param constructor singleton constructor to unregister obervers
-         * @param observers obervers to be unregistered
-         *
-         */
-        public unregister<C extends ConstructorLike>( constructor: C, ...observers: ObserverLike<[{ constructor: C, instance: InstanceType<C> }]>[] ): this
-        {
-            observable = singletonConstructorToStageObservableMap.get( <SingletonConstructorLike><unknown> constructor );
-            observable && observable.unregister( ...<ObserverLike<[{}]>[]>observers );
-
-            return this;
-        }
-    }();
-})();
-
-/**
- *
- * Marks a constructor or a static member as source of
- * data for the dependency injection's Injector.
- *
- * When applied to constructor or method, it accepts default parameters.
- *
- * @param param0 optional, configure the injectable
- * @param param0.id optional, uniq ID for the injected value. This ID is unique per injector.
- * @param param0.once optional, should this value be fetch once (true) or each time it is needed
- * @param param0.parameters  optional, values to be passed as parameters, at given position, void otherwise.
- *
- */
-export const Injectable: InjectableLike = ({ id, once = true, parameters = {} }: Partial<InjectableConstructorConfigurationLike> = {}) =>
-    <C extends ConstructorLike>( target: C, member?: keyof C, descriptor?: PropertyDescriptor ): void =>
-    {
-        throw new Error( 'Not yet implemented' );
-    };
-
-interface InjectableLike
-{
-    ( configuration?: Partial<InjectableConfigurationLike> ): {
-        <C extends ConstructorLike>( target: C): void;
-        <C extends ConstructorLike>( target: C, member: KeysNotMappedTo<C, Function> ) : void;
-        <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
-    }
-    ( configuration?: Partial<InjectableConstructorConfigurationLike> ): {
-        <C extends ConstructorLike>( target: C ) : void;
-        <C extends ConstructorLike>( target: C, member: KeysMappedTo<C, Function>, descriptor: PropertyDescriptor ) : void;
-    }
-}
-
-interface InjectableConfigurationLike
-{
-    id?: string;
-    once: boolean;
-}
-interface InjectableConstructorConfigurationLike extends InjectableConfigurationLike
-{
-    parameters: { [index: number]: any };
-}
-
-/**
- *
- * Metadata of injectables -
- *
- * They are organized by kind : methods, properties and/or constructors
- *
- */
-export const injectableMetadata = {
-    get methods(): InjectableMethodMetadataLike[]
-    {
-        throw new Error( 'Not yet implemented' );
-    },
-    get properties(): InjectablePropertyMetadataLike[]
-    {
-        throw new Error( 'Not yet implemented' );
-    },
-    get constructors(): InjectableConstructorMetadataLike[]
-    {
-        throw new Error( 'Not yet implemented' );
-    },
 };
 
-type InjectableMethodMetadataLike = InjectableConstructorConfigurationLike & { target: ConstructorLike, member: PropertyKey };
-type InjectablePropertyMetadataLike = InjectableConfigurationLike & { target: ConstructorLike, member: PropertyKey };
-type InjectableConstructorMetadataLike = InjectableConstructorConfigurationLike & { target: ConstructorLike };
+Singleton.observables =new class extends WeakMap<{ new( ..._: any[] ): any }, StageObservable<[ {} ]>>
+{
+    get( key: { new( ..._: any[] ): any } ): StageObservable<[ {} ]> | undefined
+    {
+        return super.get( key ) ?? this.set( key, new StageObservable<[ {} ]>() ).get( key );
+    }
+};
+
+const instances = new WeakMap<{ new( ..._: any[] ): any }, {}>();
+
+const singleton = Symbol();
